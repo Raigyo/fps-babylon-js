@@ -4,7 +4,7 @@
 
 > 🔨 Videogame using WebGL and Babylon.js 4. Babylon.js is a real time 3D engine using a JavaScript library for displaying 3D graphics in a web browser via HTML5. You could find the OppenClassRooms lesson followed [here](https://openclassrooms.com/fr/courses/3979376-creez-votre-propre-fps-en-webgl).
 
-![Babylon logo](_readme-img/intro-logo.png)
+![Babylon logo](readme-img/intro-logo.png)
 
 
 
