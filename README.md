@@ -1,4 +1,4 @@
-# WebGL & Babylon.JS - Videogame: First Personnal Shooter
+# WebGL & Babylon.JS 4 - Videogame: First Personnal Shooter
 
 *February 2020*
 

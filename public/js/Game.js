@@ -10,17 +10,21 @@ Game = function(canvasId) {
     // Define canvas and Babylon engine
     var canvas = document.getElementById(canvasId);
     var engine = new BABYLON.Engine(canvas, true);
-    //Creates a global variable window._this (prototype below)
-    var _this = this;
+    var _this = this;//Creates a global variable window._this (prototype below)
+    _this.actualTime = Date.now();
 
     // Scene init with the var engine
     this.scene = this._initScene(engine);
+    var _player = new Player(_this, canvas);//Init instance of player
+    var _arena = new Arena(_this);//Init instance of arena
 
     // Game rendering using graphic engine
-    var _player = new Player(_this, canvas); //call Player component
-    var _arena = new Arena(_this); //call Arena component
     engine.runRenderLoop(function () {
-        _this.scene.render();
+      // FPS and spped adjustement
+      _this.fps = Math.round(1000/engine.getDeltaTime());
+      // Udpate the player movement according to the FPS ratio provided by his computer
+      _player._checkMove((_this.fps)/60);
+      _this.scene.render();
     });
 
     //Native fct: Adjust the screen if the window of the browser is resized
