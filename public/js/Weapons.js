@@ -62,12 +62,12 @@ Weapons.prototype = {
   //Let's shoot
   launchFire : function() {
     if (this.canFire) {
-        var renderWidth = this.Player.game.engine.getRenderWidth(true);
-        var renderHeight = this.Player.game.engine.getRenderHeight(true);
+        var renderWidth = this.Player.game.engine.getRenderWidth(true);//center of screen
+        var renderHeight = this.Player.game.engine.getRenderHeight(true);//center of screen
 
-        var direction = this.Player.game.scene.pick(renderWidth/2,renderHeight/2);
-        direction = direction.pickedPoint.subtractInPlace(this.Player.camera.position);
-        direction = direction.normalize();
+        var direction = this.Player.game.scene.pick(renderWidth/2,renderHeight/2);//target
+        direction = direction.pickedPoint.subtractInPlace(this.Player.camera.position);//target-actual position
+        direction = direction.normalize();//direction
 
         this.createRocket(this.Player.camera,direction)
         this.canFire = false;
@@ -95,36 +95,35 @@ Weapons.prototype = {
     newRocket.material = new BABYLON.StandardMaterial("textureWeapon", this.Player.game.scene);
     newRocket.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
-    // On donne accès à Player dans registerBeforeRender
+    // Access to player in registerBeforeRender
     var Player = this.Player;
 
     newRocket.registerAfterRender(function(){
-        // On bouge la roquette vers l'avant
+        // We move roquet forward
         newRocket.translate(new BABYLON.Vector3(0,0,1),1,0);
 
-        // On crée un rayon qui part de la base de la roquette vers l'avant
+        // Ray to forward
         var rayRocket = new BABYLON.Ray(newRocket.position,newRocket.direction);
 
-        // On regarde quel est le premier objet qu'on touche
+        // Check first object hit
         var meshFound = newRocket.getScene().pickWithRay(rayRocket);
 
-        // Si la distance au premier objet touché est inférieure a 10, on détruit la roquette
+        // If the distance to the first object hit is less than 10, we destroy the rocket
         if(!meshFound || meshFound.distance < 10){
-          // On vérifie qu'on a bien touché quelque chose
+          // We check that we have touched something
           if(meshFound.pickedMesh){
-              // On crée une sphere qui représentera la zone d'impact
+              // We create a sphere that will represent the impact area
               var explosionRadius = BABYLON.Mesh.CreateSphere("sphere", 5.0, 20, Player.game.scene);
-              // On positionne la sphère la ou il y a eu impact
+              // We position the sphere where there was an impact
               explosionRadius.position = meshFound.pickedPoint;
-              // On fais en sorte que les explosions ne soit pas considéré pour le Ray de la roquette
+              // We make sure that the explosions are not considered for the Ray of the rocket
               explosionRadius.isPickable = false;
-              // On crée un petit material orange
+              // We create an orange material
               explosionRadius.material = new BABYLON.StandardMaterial("textureExplosion", Player.game.scene);
               explosionRadius.material.diffuseColor = new BABYLON.Color3(1,0.6,0);
               explosionRadius.material.specularColor = new BABYLON.Color3(0,0,0);
               explosionRadius.material.alpha = 0.8;
-
-              // Chaque frame, on baisse l'opacité et on efface l'objet quand l'alpha est arrivé à 0
+              // Each frame, we lower the opacity and we delete the object when the alpha has reached 0
               explosionRadius.registerAfterRender(function(){
                   explosionRadius.material.alpha -= 0.02;
                   if(explosionRadius.material.alpha<=0){

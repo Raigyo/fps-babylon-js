@@ -15,3 +15,4 @@
 - [Github: An implementation of Express and BabylonJS to make it easier to code BabylonJS apps in NodeJS (en)](https://github.com/yazheirx/babylon_express_server)
 - [Le modèle objet JavaScript en détails (fr)](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Le_mod%C3%A8le_objet_JavaScript_en_d%C3%A9tails)
 - [Constructeur Object, prototype et héritage en JavaScript (fr)](https://www.pierre-giraud.com/javascript-apprendre-coder-cours/constructeur-object-prototype-heritage/)
+- [Chrome mousedown and mouseup events no longer working, other browsers are fine](https://stackoverflow.com/questions/41181372/chrome-mousedown-and-mouseup-events-no-longer-working-other-browsers-are-fine/41238807#41238807)
