@@ -68,7 +68,7 @@ Player = function(game, canvas) {
   var canvas = this.game.scene.getEngine().getRenderingCanvas();
 
   // Check if we are on scene then affect the click press to shoot (_this.controlEnabled)
-  canvas.addEventListener("mousedown", function(evt) {
+  canvas.addEventListener("pointerdown", function(evt) {
       if (_this.controlEnabled && !_this.weaponShoot) {
           _this.weaponShoot = true;
           _this.handleUserMouseDown();
@@ -77,7 +77,7 @@ Player = function(game, canvas) {
   }, false);//\mousedown
 
   // Check if we are on scene then affect the click release
-  canvas.addEventListener("mouseup", function(evt) {
+  canvas.addEventListener("pointerup", function(evt) {
       if (_this.controlEnabled && _this.weaponShoot) {
           _this.weaponShoot = false;
           _this.handleUserMouseUp();
