@@ -10,9 +10,9 @@ Game = function(canvasId) {
     // Define canvas and Babylon engine
     var canvas = document.getElementById(canvasId);
     var engine = new BABYLON.Engine(canvas, true);
+    this.engine = engine;
     var _this = this;//Creates a global variable window._this (prototype below)
     _this.actualTime = Date.now();
-
     // Scene init with the var engine
     this.scene = this._initScene(engine);
     var _player = new Player(_this, canvas);//Init instance of player
@@ -25,16 +25,21 @@ Game = function(canvasId) {
       // Udpate the player movement according to the FPS ratio provided by his computer
       _player._checkMove((_this.fps)/60);
       _this.scene.render();
-    });
+      // If launchBullets = true = shoot
+      // Has to be after rendering
+      if(_player.camera.weapons.launchBullets === true){
+          _player.camera.weapons.launchFire();
+      }
+    });//\runRenderLoop
 
     //Native fct: Adjust the screen if the window of the browser is resized
     window.addEventListener("resize", function () {
         if (engine) {
             engine.resize();
         }
-    },false);
+    },false);//\resize
 
-};
+};//\Game
 
 Game.prototype = {
     // Prototype scene init
@@ -44,7 +49,7 @@ Game.prototype = {
         //return on each frame
         return scene;
     }
-};
+};//\Game.prototype
 
 // ------------------------- DEGRES to RADIANS
 function degToRad(deg)

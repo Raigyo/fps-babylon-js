@@ -2,7 +2,7 @@
 
 Player = function(game, canvas) {
   //Instanciation:
-  // _this is access to the camera inside Player component
+  // _this is access to the object inside Player component
   var _this = this;
   //To Test if shoot is activated
   this.weaponShoot = false;
@@ -51,7 +51,7 @@ Player = function(game, canvas) {
      }
   }, false);
 
-  //Event listener: mouse
+  //Event listener: mouse movements
   window.addEventListener("mousemove", function(evt) {
     //If user accepted the use of mouse
     if(_this.rotEngaged === true){
@@ -62,7 +62,28 @@ Player = function(game, canvas) {
           _this.camera.rotation.x+=evt.movementY * 0.001 * (_this.angularSensibility / 250);
       }
     }
-  }, false);
+  }, false);//\mousemove
+
+  // We get scene canvas
+  var canvas = this.game.scene.getEngine().getRenderingCanvas();
+
+  // Check if we are on scene then affect the click press to shoot (_this.controlEnabled)
+  canvas.addEventListener("mousedown", function(evt) {
+      if (_this.controlEnabled && !_this.weaponShoot) {
+          _this.weaponShoot = true;
+          _this.handleUserMouseDown();
+          console.log('fire');
+      }
+  }, false);//\mousedown
+
+  // Check if we are on scene then affect the click release
+  canvas.addEventListener("mouseup", function(evt) {
+      if (_this.controlEnabled && _this.weaponShoot) {
+          _this.weaponShoot = false;
+          _this.handleUserMouseUp();
+          console.log('cease fire');
+      }
+  }, false);//\mouseup
 
   // Cam init
   this._initCamera(this.game.scene, canvas);
@@ -70,9 +91,12 @@ Player = function(game, canvas) {
   this.controlEnabled = false;
   // Event to check click on scene
   this._initPointerLock();
-};
+};//\Player = function(game, canvas)
 
 Player.prototype = {
+  //Notes:
+  //_ prefixed variable names are considered private by convention but are still public in JS
+  //Javascript Vanilla uses Prototypes instead of Classes in POO
   //Init Camera
   _initCamera : function(scene, canvas) {
       // Cam creation
@@ -107,7 +131,7 @@ Player.prototype = {
               _this.rotEngaged = true;// Mouse can move in scene
           }
       };
-      // Event to change the pointer state according the browser
+      // Event to change the pointer state according to the browser
       document.addEventListener("pointerlockchange", pointerlockchange, false);
       document.addEventListener("mspointerlockchange", pointerlockchange, false);
       document.addEventListener("mozpointerlockchange", pointerlockchange, false);
@@ -143,5 +167,17 @@ Player.prototype = {
               this.camera.position.y,
               this.camera.position.z + Math.cos(this.camera.rotation.y + degToRad(-90)) * - relativeSpeed);
       }
-  }//\_checkMove
+  },//\_checkMove
+  //Make the shoot available in Weapon component
+  handleUserMouseDown : function() {
+    if(this.isAlive === true){
+        this.camera.weapons.fire();
+    }
+  },//\handleUserMouseDown
+  //Make the stop shoot available in Weapon component
+  handleUserMouseUp : function() {
+    if(this.isAlive === true){
+        this.camera.weapons.stopFire();
+    }
+  },//\handleUserMouseUp
 }//\Player.prototype
