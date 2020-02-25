@@ -54,14 +54,14 @@ Player = function(game, canvas) {
   //Event listener: mouse movements
   window.addEventListener("mousemove", function(evt) {
     //If user accepted the use of mouse
-    if(_this.rotEngaged === true){
-      _this.camera.rotation.y+=evt.movementX * 0.001 * (_this.angularSensibility / 250);//change camera horizontal position
-      var nextRotationX = _this.camera.rotation.x + (evt.movementY * 0.001 * (_this.angularSensibility / 250));//change camera vertical position
-      //Conditional: detect if it's possible to move verticaly (to avoid '360° view')
-      if( nextRotationX < degToRad(90) && nextRotationX > degToRad(-90)){
-          _this.camera.rotation.x+=evt.movementY * 0.001 * (_this.angularSensibility / 250);
+      if(_this.rotEngaged === true){
+          _this.camera.playerBox.rotation.y+=evt.movementX * 0.001 * (_this.angularSensibility / 250);
+          var nextRotationX = _this.camera.playerBox.rotation.x + (evt.movementY * 0.001 * (_this.angularSensibility / 250));
+          //Conditional: detect if it's possible to move verticaly (to avoid '360° view')
+          if( nextRotationX < degToRad(90) && nextRotationX > degToRad(-90)){
+              _this.camera.playerBox.rotation.x+=evt.movementY * 0.001 * (_this.angularSensibility / 250);
+          }
       }
-    }
   }, false);//\mousemove
 
   // We get scene canvas
@@ -97,45 +97,60 @@ Player.prototype = {
   //Notes:
   //_ prefixed variable names are considered private by convention but are still public in JS
   //Javascript Vanilla uses Prototypes instead of Classes in POO
-  //Init Camera
+  //Init Player movement/Camera
   _initCamera : function(scene, canvas) {
-      // Cam creation
-      this.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(-20, 5, 0), scene);
-      // Axis for movement X and Z (Up, Down, Left, Right)
-      this.camera.axisMovement = [false,false,false,false];//False: keys are assigned in Player class
-      // To check if the player is alive
-      this.isAlive = true;
-      // Cam 'raycast' to point zero
-      this.camera.setTarget(BABYLON.Vector3.Zero());
-      // Instanciate weapon (in _initCamera because the weapon has to follow camera)
-      this.camera.weapons = new Weapons(this);
+    // Player movement (followed by camera: same principle than FPS conroller in Unity)
+    var playerBox = BABYLON.Mesh.CreateBox("headMainPlayer", 3, scene);
+    playerBox.position = new BABYLON.Vector3(-20, 5, 0);
+    playerBox.ellipsoid = new BABYLON.Vector3(2, 5, 2);//height of eyes
+    // Cam creation
+    this.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, 0), scene);
+    this.camera.playerBox = playerBox
+    this.camera.parent = this.camera.playerBox;
+    // Add collisions with playerBox
+    this.camera.playerBox.checkCollisions = true;
+    this.camera.playerBox.applyGravity = true;
+    // If player is alive or not
+    this.isAlive = true;
+    // Main player?
+    this.camera.isMain = true;
+    // We create weapons
+    this.camera.weapons = new Weapons(this);
+    // Axis for movement X and Z (Up, Down, Left, Right)
+    this.camera.axisMovement = [false,false,false,false];
+    //Activate collision/hitbox on player
+    var hitBoxPlayer = BABYLON.Mesh.CreateBox("hitBoxPlayer", 3, scene);
+    hitBoxPlayer.parent = this.camera.playerBox;
+    hitBoxPlayer.scaling.y = 2;
+    hitBoxPlayer.isPickable = true;
+    hitBoxPlayer.isMain = true;
   },//\_initCamera
 
   //Init Pointer lock in canvas
   _initPointerLock : function() {
-      var _this = this;
-      // Request for the pointer capture (to browser/user)
-      var canvas = this.game.scene.getEngine().getRenderingCanvas();
-      canvas.addEventListener("click", function(evt) {
-          canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-          if (canvas.requestPointerLock) {
-              canvas.requestPointerLock();
-          }
-      }, false);
-      // Event to change rotation parameter
-      var pointerlockchange = function (event) {
-          _this.controlEnabled = (document.mozPointerLockElement === canvas || document.webkitPointerLockElement === canvas || document.msPointerLockElement === canvas || document.pointerLockElement === canvas);
-          if (!_this.controlEnabled) {
-              _this.rotEngaged = false;// Mouse cannot move in scene
-          } else {
-              _this.rotEngaged = true;// Mouse can move in scene
-          }
-      };
-      // Event to change the pointer state according to the browser
-      document.addEventListener("pointerlockchange", pointerlockchange, false);
-      document.addEventListener("mspointerlockchange", pointerlockchange, false);
-      document.addEventListener("mozpointerlockchange", pointerlockchange, false);
-      document.addEventListener("webkitpointerlockchange", pointerlockchange, false);
+    var _this = this;
+    // Request for the pointer capture (to browser/user)
+    var canvas = this.game.scene.getEngine().getRenderingCanvas();
+    canvas.addEventListener("click", function(evt) {
+        canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+        if (canvas.requestPointerLock) {
+            canvas.requestPointerLock();
+        }
+    }, false);
+    // Event to change rotation parameter
+    var pointerlockchange = function (event) {
+        _this.controlEnabled = (document.mozPointerLockElement === canvas || document.webkitPointerLockElement === canvas || document.msPointerLockElement === canvas || document.pointerLockElement === canvas);
+        if (!_this.controlEnabled) {
+            _this.rotEngaged = false;// Mouse cannot move in scene
+        } else {
+            _this.rotEngaged = true;// Mouse can move in scene
+        }
+    };
+    // Event to change the pointer state according to the browser
+    document.addEventListener("pointerlockchange", pointerlockchange, false);
+    document.addEventListener("mspointerlockchange", pointerlockchange, false);
+    document.addEventListener("mozpointerlockchange", pointerlockchange, false);
+    document.addEventListener("webkitpointerlockchange", pointerlockchange, false);
   },//\_initPointerLock
 
   //Player movement: check where the player is looking then move it in that direction if the key 'forward' is pressed
@@ -143,30 +158,39 @@ Player.prototype = {
   //the new position of the object is determined by its old position, to which the speed multiplied by the direction vector is added.
   _checkMove : function(ratioFps) {
       let relativeSpeed = this.speed / ratioFps;
-      //Forward
       if(this.camera.axisMovement[0]){
-          this.camera.position = new BABYLON.Vector3(this.camera.position.x + (Math.sin(this.camera.rotation.y) * relativeSpeed),
-              this.camera.position.y,
-              this.camera.position.z + (Math.cos(this.camera.rotation.y) * relativeSpeed));
+          forward = new BABYLON.Vector3(
+              parseFloat(Math.sin(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed,
+              0,
+              parseFloat(Math.cos(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed
+          );
+          this.camera.playerBox.moveWithCollisions(forward);
       }
-      //Backward
       if(this.camera.axisMovement[1]){
-          this.camera.position = new BABYLON.Vector3(this.camera.position.x + (Math.sin(this.camera.rotation.y) * -relativeSpeed),
-              this.camera.position.y,
-              this.camera.position.z + (Math.cos(this.camera.rotation.y) * -relativeSpeed));
+          backward = new BABYLON.Vector3(
+              parseFloat(-Math.sin(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed,
+              0,
+              parseFloat(-Math.cos(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed
+          );
+          this.camera.playerBox.moveWithCollisions(backward);
       }
-      //Left
       if(this.camera.axisMovement[2]){
-          this.camera.position = new BABYLON.Vector3(this.camera.position.x + Math.sin(this.camera.rotation.y + degToRad(-90)) * relativeSpeed,
-              this.camera.position.y,
-              this.camera.position.z + Math.cos(this.camera.rotation.y + degToRad(-90)) * relativeSpeed);
+          left = new BABYLON.Vector3(
+              parseFloat(Math.sin(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed,
+              0,
+              parseFloat(Math.cos(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed
+          );
+          this.camera.playerBox.moveWithCollisions(left);
       }
-      //Right
       if(this.camera.axisMovement[3]){
-          this.camera.position = new BABYLON.Vector3(this.camera.position.x + Math.sin(this.camera.rotation.y + degToRad(-90)) * - relativeSpeed,
-              this.camera.position.y,
-              this.camera.position.z + Math.cos(this.camera.rotation.y + degToRad(-90)) * - relativeSpeed);
+          right = new BABYLON.Vector3(
+              parseFloat(-Math.sin(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed,
+              0,
+              parseFloat(-Math.cos(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed
+          );
+          this.camera.playerBox.moveWithCollisions(right);
       }
+      this.camera.playerBox.moveWithCollisions(new BABYLON.Vector3(0,(-1.5) * relativeSpeed ,0));
   },//\_checkMove
   //Make the shoot available in Weapon component
   handleUserMouseDown : function() {

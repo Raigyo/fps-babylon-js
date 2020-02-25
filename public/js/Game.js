@@ -46,6 +46,8 @@ Game.prototype = {
     _initScene : function(engine) {
         var scene = new BABYLON.Scene(engine);
         scene.clearColor=new BABYLON.Color3(0,0,0);
+        scene.gravity = new BABYLON.Vector3(0, -9.81, 0);//add gravity (value -9.81: earth value)
+        scene.collisionsEnabled = true;//add collisions
         //return on each frame
         return scene;
     }
