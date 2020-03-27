@@ -99,11 +99,20 @@ Player = function(game, canvas) {
     //Javascript Vanilla uses Prototypes instead of Classes in POO
     //Init Player movement/Camera
     _initCamera : function(scene, canvas) {
-      // Player movement (followed by camera: same principle than FPS conroller in Unity)
-      var playerBox = BABYLON.Mesh.CreateBox("headMainPlayer", 3, scene);
-      playerBox.position = new BABYLON.Vector3(-20, 5, 0);
-      playerBox.ellipsoid = new BABYLON.Vector3(2, 5, 2);//height of eyes
-      // Cam creation
+    //Random spawn
+    //Math.random gives us a number between 0 and 1
+    let randomPoint = Math.random();
+    //randomPoint rounds off this number and the number of spawnPoints
+    randomPoint = Math.round(randomPoint * (this.game.allSpawnPoints.length - 1));
+    //We say that the spawnPoint is the one chosen according to the random above
+    this.spawnPoint = this.game.allSpawnPoints[randomPoint];
+    //Player movement (followed by camera: same principle than FPS conroller in Unity)
+    var playerBox = BABYLON.Mesh.CreateBox("headMainPlayer", 3, scene);
+    //playerBox.position = new BABYLON.Vector3(-20, 5, 0);
+    //playerBox.ellipsoid = new BABYLON.Vector3(2, 5, 2);//height of eyes
+    playerBox.position = this.spawnPoint.clone();
+    playerBox.ellipsoid = new BABYLON.Vector3(2, 10, 2);
+    // Cam creation
       this.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, 0), scene);
       this.camera.playerBox = playerBox
       this.camera.parent = this.camera.playerBox;
@@ -120,11 +129,15 @@ Player = function(game, canvas) {
       this.camera.armor = 0;
       // We create weapons
       this.camera.weapons = new Weapons(this);
+
+      
       // Axis for movement X and Z (Up, Down, Left, Right)
-      this.camera.axisMovement = [false,false,false,false];    
+      this.camera.axisMovement = [false,false,false,false];   
+
       // Cam reinit after respawn
       //this.camera.setTarget(BABYLON.Vector3.Zero());
-      //this.game.scene.activeCamera = this.camera;
+      this.game.scene.activeCamera = this.camera;
+
       //Activate collision/hitbox on player
       var hitBoxPlayer = BABYLON.Mesh.CreateBox("hitBoxPlayer", 3, scene);
       hitBoxPlayer.parent = this.camera.playerBox;
@@ -236,7 +249,7 @@ Player = function(game, canvas) {
         this.camera.weapons.rocketLauncher.dispose();
         //We report Weapons thet player is dead
         this.isAlive=false;
-            //Respwan
+        //Respwan
         var newPlayer = this;
         var canvas = this.game.scene.getEngine().getRenderingCanvas();
         setTimeout(function(){ 
