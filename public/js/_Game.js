@@ -13,6 +13,13 @@ Game = function(canvasId) {
     this.engine = engine;
     var _this = this;//Creates a global variable window._this (prototype below)
     _this.actualTime = Date.now();
+    //Spawn points
+    this.allSpawnPoints = [
+        new BABYLON.Vector3(-20, 5, 0),
+        new BABYLON.Vector3(0, 5, 0),
+        new BABYLON.Vector3(20, 5, 0),
+        new BABYLON.Vector3(-40, 5, 0)
+    ];
     // Scene init with the var engine
     this.scene = this._initScene(engine);
     var _player = new Player(_this, canvas);//Init instance of player    
@@ -35,7 +42,6 @@ Game = function(canvasId) {
         // If launchBullets = true = shoot
         // Has to be after rendering
         if(_player.camera.weapons.launchBullets === true){
-            console.log("Piou");
             _player.camera.weapons.launchFire();
         }
     });//\runRenderLoop

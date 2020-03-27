@@ -13,7 +13,7 @@ Weapons = function(Player) {
   // Create weapon
   this.rocketLauncher = this.newWeapon(Player);
   // Fire rate
-  this.fireRate = 800;
+  this.fireRate = 1000;
   // Delta used to calculate after which time the shoot will be available again
   this._deltaFireRate = this.fireRate;
   // Variable used to make the shooting available or not (it will depend on weapon used)
