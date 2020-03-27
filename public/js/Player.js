@@ -114,6 +114,10 @@ Player.prototype = {
     this.isAlive = true;
     // Main player?
     this.camera.isMain = true;
+    // Player health
+    this.camera.health = 100;
+    // Armor health
+    this.camera.armor = 0;
     // We create weapons
     this.camera.weapons = new Weapons(this);
     // Axis for movement X and Z (Up, Down, Left, Right)
@@ -192,6 +196,24 @@ Player.prototype = {
       }
       this.camera.playerBox.moveWithCollisions(new BABYLON.Vector3(0,(-1.5) * relativeSpeed ,0));
   },//\_checkMove
+  getDamage : function(damage){
+    var damageTaken = damage;
+    //Armor damage buffer
+    if(this.camera.armor > Math.round(damageTaken/2)){
+        this.camera.armor -= Math.round(damageTaken/2);
+        damageTaken = Math.round(damageTaken/2);
+    }else{
+        damageTaken = damageTaken - this.camera.armor;
+        this.camera.armor = 0;
+    }
+    // If player i still have life
+    if(this.camera.health>damageTaken){
+        this.camera.health-=damageTaken;
+    }else{
+        //Otherwise he's dead
+        console.log('Vous êtes mort...');
+    }       
+  },//\_getDamage
   //Make the shoot available in Weapon component
   handleUserMouseDown : function() {
     if(this.isAlive === true){

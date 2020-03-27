@@ -91,7 +91,7 @@ Weapons.prototype = {
 
     // Access to player in registerBeforeRender
     var Player = this.Player;
-
+    this.Player.game._rockets.push(newRocket);//Create rocket and send it to Game.js
     newRocket.registerAfterRender(function(){
         // We move roquet forward
         newRocket.translate(new BABYLON.Vector3(0,0,1),1,0);
