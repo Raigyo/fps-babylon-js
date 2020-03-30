@@ -22,12 +22,14 @@ Game = function(canvasId) {
     ];
     // Scene init with the var engine
     this.scene = this._initScene(engine);
+    var armory = new Armory(this);//Init instance of armory
+    _this.armory = armory;// Access Armory from Game
     var _player = new Player(_this, canvas);//Init instance of player    
     this._PlayerData = _player;// Access Player from Game
     var _arena = new Arena(_this);//Init instance of arena
     this._rockets = [];//The rockets generated in ¨Player.js"  
     this._explosionRadius = [];//Explosions from rockets        
-
+    this._lasers = [];//lasers shoots
     // Game rendering using graphic engine
     engine.runRenderLoop(function () {
         // FPS and speed adjustement
@@ -37,6 +39,10 @@ Game = function(canvasId) {
         // We call our two calculation functions for rockets
         _this.renderRockets();
         _this.renderExplosionRadius();
+        // We calculate the decrease in the size of the laser
+        _this.renderLaser();
+        // We calculate the weapon animations
+        _this.renderWeapons();
         //We render the scene
         _this.scene.render();
         // If launchBullets = true = shoot
@@ -64,7 +70,8 @@ Game.prototype = {
         scene.collisionsEnabled = true;//add collisions
         //return on each frame
         return scene;
-    },
+    },//\_initScene 
+
     //Move all the rockets
     renderRockets : function() {
         for (var i = 0; i < this._rockets.length; i++) {
@@ -108,7 +115,8 @@ Game.prototype = {
                 this._rockets[i].position.addInPlace(this._rockets[i].direction.scale(relativeSpeed))
             }
         };
-    },
+    },//\renderRockets
+
     //Move all the explosions
     renderExplosionRadius : function(){
         if(this._explosionRadius.length > 0){
@@ -120,7 +128,39 @@ Game.prototype = {
                 }
             }
         }
-    }
+    },//\renderExplosionRadius
+
+    //Render laser shoots
+    renderLaser : function(){
+        if(this._lasers.length > 0){
+            //Decrease laser stroke
+            for (var i = 0; i < this._lasers.length; i++) {
+                this._lasers[i].edgesWidth -= 0.5;
+                if(this._lasers[i].edgesWidth<=0){
+                    this._lasers[i].dispose();
+                    this._lasers.splice(i, 1);
+                }
+            }
+        }
+    },//\renderLaser
+
+    //Weapon animation
+    renderWeapons : function(){
+        if(this._PlayerData && this._PlayerData.camera.weapons.inventory){
+            // We look at all the weapons in inventory
+            var inventoryWeapons = this._PlayerData.camera.weapons.inventory;            
+            for (var i = 0; i < inventoryWeapons.length; i++) {
+                // If the weapon is active and not in the high position (topPositionY)
+                if(inventoryWeapons[i].isActive && inventoryWeapons[i].position.y < this._PlayerData.camera.weapons.topPositionY){
+                    inventoryWeapons[i].position.y += 0.1;
+                }else if(!inventoryWeapons[i].isActive && inventoryWeapons[i].position.y != this._PlayerData.camera.weapons.bottomPosition.y){
+                    // Otherwise, if the weapon is inactive and not yet in the low position
+                    inventoryWeapons[i].position.y -= 0.1;
+                }
+            }
+        }
+    },//\renderWeapons
+
 };//\Game.prototype
 
 // ------------------------- DEGRES to RADIANS
