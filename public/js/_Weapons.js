@@ -2,8 +2,6 @@
 
 Weapons = function(Player) {
   //Instanciation:
-  // _this is access to the object inside Weapon component
-  var _this = this;
   // To access Player component
   this.Player = Player;
   // To access Armory component from game
@@ -14,12 +12,18 @@ Weapons = function(Player) {
   this.topPositionY = -0.5;
   // We add the inventory
   this.inventory = [];
-  // Créons notre lance roquette
+  // Create close combat weapon
 	var crook = this.newWeapon('Crook')
 	this.inventory[0] = crook;
-  // NewWeapon called to create the weapon called Ezekiel
-  var ezekiel = this.newWeapon('Ezekiel')
-  this.inventory[0] = ezekiel;
+  // // Create rocket weapon
+	var ezekiel = this.newWeapon('Ezekiel')
+  this.inventory[1] = ezekiel;
+  // Create bullet weapon
+  var timmy = this.newWeapon('Timmy')
+  this.inventory[2] = timmy;
+  // Create laser weapon
+  var armageddon = this.newWeapon('Armageddon')
+	this.inventory[3] = armageddon;
   // Our current weapon is Ezekiel, which is in second position
   // in the weapons table in Armory
   this.actualWeapon = this.inventory.length -1;
@@ -29,26 +33,26 @@ Weapons = function(Player) {
   //this.rocketLauncher = this.newWeapon(Player);
   // Cadence is the one of the current weapon (thanks to typeWeapon)
   this.fireRate = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon].setup.cadency;
-  // Fire rate
-  //this.fireRate = 1000;
   // Delta used to calculate after which time the shoot will be available again
   this._deltaFireRate = this.fireRate;
   // Variable used to make the shooting available or not (it will depend on weapon used)
   this.canFire = true;
   // Variable used in Player
   this.launchBullets = false;
+  // _this is access to the object inside Weapon component
+  var _this = this;
   // Used for shooting cadency
   var engine = Player.game.scene.getEngine();
   //Detect if player can shoot or not
-  Player.game.scene.registerBeforeRender(function() {
-      if (!_this.canFire) {
-          _this._deltaFireRate -= engine.getDeltaTime();//DeltaTime = real elapsed time period
-          if (_this._deltaFireRate <= 0  && _this.Player.isAlive) {
-              _this.canFire = true;//when 0 => we can shoot again
-              _this._deltaFireRate = _this.fireRate;//reinit _deltaFireRate
-          }
-      }
-  });
+  	Player.game.scene.registerBeforeRender(function() {
+	    if (!_this.canFire) {
+	        _this._deltaFireRate -= engine.getDeltaTime();//DeltaTime = real elapsed time period
+	        if (_this._deltaFireRate <= 0  && _this.Player.isAlive) {
+	            _this.canFire = true;//when 0 => we can shoot again
+	            _this._deltaFireRate = _this.fireRate;//reinit _deltaFireRate
+	        }
+	    }
+	});
 };
 
 Weapons.prototype = {
@@ -57,7 +61,6 @@ Weapons.prototype = {
     //Loop: search through all of the weapons in Armory for the weapon that has the same id 
     //as the weapon currently in hand.
     for (var i = 0; i < this.Armory.weapons.length; i++) {
-      console.log("i:", i);
         //typeWeapon = weapon parameter from Armory
         if(this.Armory.weapons[i].name === typeWeapon){
             newWeapon = BABYLON.Mesh.CreateBox('rocketLauncher', 0.5, this.Player.game.scene);
@@ -132,6 +135,7 @@ Weapons.prototype = {
   },//\launchFire
 
   createRocket : function(playerPosition, direction) {
+    console.log('Rocket');
     var positionValue = this.inventory[this.actualWeapon].absolutePosition.clone();
     var rotationValue = playerPosition.rotation;
     var Player = this.Player;
@@ -196,6 +200,7 @@ Weapons.prototype = {
   },//\createRocket
 
   shootBullet : function(meshFound) {
+    console.log('Bullet');
     // Id of weapon
     var idWeapon = this.inventory[this.actualWeapon].typeWeapon;    
     var setupWeapon = this.Armory.weapons[idWeapon].setup;    
@@ -203,11 +208,12 @@ Weapons.prototype = {
       // We hit a player
     }else{
       //  The weapon does not hit a player
-    console.log('Not Hit Bullet')
+    console.log('Not Hit Bullet');
     }
   },//\shootBullet
 
   createLaser : function(meshFound) {
+    console.log('Laser');
    // Id of weapon
     var idWeapon = this.inventory[this.actualWeapon].typeWeapon;
     var setupLaser = this.Armory.weapons[idWeapon].setup.ammos;
@@ -236,6 +242,7 @@ Weapons.prototype = {
   },//\createLaser
 
   hitHand : function(meshFound) {
+    console.log('Close combat');
     // Id of weapon
 	  var idWeapon = this.inventory[this.actualWeapon].typeWeapon;	
     var setupWeapon = this.Armory.weapons[idWeapon].setup;
@@ -256,13 +263,14 @@ Weapons.prototype = {
     // We say that the next weapon is logically the weapon plus the way given
     var nextWeapon = this.inventory[this.actualWeapon].typeWeapon + way;    
     // we currently define the possible weapon usable at null for the moment
-    var nextPossibleWeapon = null;
+    var nextPossibleWeapon = null;    
     // If the way is positive
     if(way>0){
       // The loop starts from nextWeapon
       for (var i = nextWeapon; i < nextWeapon + this.Armory.weapons.length; i++) {
           // The weapon we will test will be a modulo of i and the length of Weapon
           var numberWeapon = i % this.Armory.weapons.length;
+          console.log('numberWeapon: ', numberWeapon);
           // We compare this number to the weapons we have in the inventory
           //Ex: 4 modulo 4 gives us 0, 5 modulo 4 gives us 1
           for (var y = 0; y < this.inventory.length; y++) {
