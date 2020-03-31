@@ -213,6 +213,20 @@ Game.prototype = {
         this._lasers.push(line);
     },//\createGhostLaser
 
+    displayScore(room){
+        if(room.length>=5){
+            var limitLoop = 4;
+        }else{
+            var limitLoop = room.length-1;
+        }
+        var indexName = 0;
+        for (var i = 0; i <= limitLoop ; i++) {
+            document.getElementById('player'+indexName).innerText = room[i].name;
+            document.getElementById('scorePlayer'+indexName).innerText = room[i].score;
+            indexName++;
+        }
+    }//\displayScore
+
 };//\Game.prototype
 
 // ------------------------- DEGRES to RADIANS

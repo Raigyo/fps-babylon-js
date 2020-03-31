@@ -17,6 +17,10 @@ Player = function(game, canvas) {
     this.angularSensibility = 200;
     // Axis movement X et Z
     this.axisMovement = [false,false,false,false];//Movement axis X & Z
+
+    // Connect life and armor to 2D
+    this.textHealth = document.getElementById('textHealth');
+    this.textArmor = document.getElementById('textArmor');
   
     //Event listener: keys released + send data to SocketIO
     window.addEventListener("keyup", function(evt) {
@@ -164,16 +168,19 @@ Player.prototype = {
         this.camera.playerBox.applyGravity = true;
         // If player is alive or not
         this.isAlive = true;
-        // Main player?
-        this.camera.isMain = true;
         // Player health
         this.camera.health = 100;
+        // Main player?
+        this.camera.isMain = true;
         // Armor health
         this.camera.armor = 0;
         // We create weapons
         this.camera.weapons = new Weapons(this);
         // Axis for movement X and Z (Up, Down, Left, Right)
-        this.camera.axisMovement = [false,false,false,false];   
+        this.camera.axisMovement = [false,false,false,false];
+        // Life and armor display
+        this.textHealth.innerText = this.camera.health;
+        this.textArmor.innerText = this.camera.armor;   
         // Cam reinit after respawn
         //this.camera.setTarget(BABYLON.Vector3.Zero());
         this.game.scene.activeCamera = this.camera;
@@ -295,9 +302,17 @@ Player.prototype = {
         // If player i still have life
         if(this.camera.health>damageTaken){
             this.camera.health-=damageTaken;
+            if(this.camera.isMain){
+                this.textHealth.innerText = this.camera.health;
+                this.textArmor.innerText = this.camera.armor;
+            }
         }else{
             //Otherwise he's dead
             console.log('You\'re dead...');
+            if(this.camera.isMain){
+                this.textHealth.innerText = 0;
+                this.textArmor.innerText = 0;
+            }
             this.playerDead(whoDamage)
         }       
     },//\_getDamage
