@@ -5,56 +5,72 @@ Player = function(game, canvas) {
     //Instanciation:
     // _this is access to the object inside Player component
     var _this = this;
-    //To Test if shoot is activated
+    // To Test if shoot is activated
     this.weaponShoot = false;
+    // List of players displayed on screen
+    this.ghostPlayers=[];
     // Game component imported in the Player component
     this.game = game;
-    //Speed of the player
+    // Speed of the player
     this.speed = 1;
     // Mouse movement speed
     this.angularSensibility = 200;
     // Axis movement X et Z
     this.axisMovement = [false,false,false,false];//Movement axis X & Z
   
-    //Event listener: keys released
+    //Event listener: keys released + send data to SocketIO
     window.addEventListener("keyup", function(evt) {
-       switch(evt.keyCode){
-           case 90:
-           _this.camera.axisMovement[0] = false;
-           break;
-           case 83:
-           _this.camera.axisMovement[1] = false;
-           break;
-           case 81:
-           _this.camera.axisMovement[2] = false;
-           break;
-           case 68:
-           _this.camera.axisMovement[3] = false;
-           break;
-       }
+        if(evt.keyCode == 90 || evt.keyCode == 83 || evt.keyCode == 81 || evt.keyCode == 68 ){
+            switch(evt.keyCode){
+                case 90:
+                _this.camera.axisMovement[0] = false;
+                break;
+                case 83:
+                _this.camera.axisMovement[1] = false;
+                break;
+                case 81:
+                _this.camera.axisMovement[2] = false;
+                break;
+                case 68:
+                _this.camera.axisMovement[3] = false;
+                break;
+            }
+            var data={
+                axisMovement : _this.camera.axisMovement
+            };
+            _this.sendNewData(data)
+            
+        }
     }, false);
   
-    //Event listener: keys pressed
+    //Event listener: keys pressed + send data to SocketIO
     window.addEventListener("keydown", function(evt) {
-       switch(evt.keyCode){
-           case 90:
-           _this.camera.axisMovement[0] = true;
-           break;
-           case 83:
-           _this.camera.axisMovement[1] = true;
-           break;
-           case 81:
-           _this.camera.axisMovement[2] = true;
-           break;
-           case 68:
-           _this.camera.axisMovement[3] = true;
-           break;
-       }
+        if(evt.keyCode == 90 || evt.keyCode == 83 || evt.keyCode == 81 || evt.keyCode == 68 ){
+            switch(evt.keyCode){
+                case 90:
+                _this.camera.axisMovement[0] = true;
+                break;
+                case 83:
+                _this.camera.axisMovement[1] = true;
+                break;
+                case 81:
+                _this.camera.axisMovement[2] = true;
+                break;
+                case 68:
+                _this.camera.axisMovement[3] = true;
+                break;
+            }
+            var data={
+                axisMovement : _this.camera.axisMovement
+            };
+            _this.sendNewData(data)
+        }
+        
     }, false);
   
     //Event listener: mouse movements
     window.addEventListener("mousemove", function(evt) {
-      //If user accepted the use of mouse
+        //If user accepted the use of mouse
         if(_this.rotEngaged === true){
             _this.camera.playerBox.rotation.y+=evt.movementX * 0.001 * (_this.angularSensibility / 250);
             var nextRotationX = _this.camera.playerBox.rotation.x + (evt.movementY * 0.001 * (_this.angularSensibility / 250));
@@ -62,6 +78,10 @@ Player = function(game, canvas) {
             if( nextRotationX < degToRad(90) && nextRotationX > degToRad(-90)){
                 _this.camera.playerBox.rotation.x+=evt.movementY * 0.001 * (_this.angularSensibility / 250);
             }
+            var data={
+                rotation : _this.camera.playerBox.rotation
+            };
+            _this.sendNewData(data)
         }
     }, false);//\mousemove
   
@@ -209,42 +229,58 @@ Player.prototype = {
     //Player movement: check where the player is looking then move it in that direction if the key 'forward' is pressed
     //The player's rotation axis is a value in radians expressed on the Y axis. The player rotates horizontally on this axis
     //the new position of the object is determined by its old position, to which the speed multiplied by the direction vector is added.
-    _checkMove : function(ratioFps) {
-        let relativeSpeed = this.speed / ratioFps;
-        if(this.camera.axisMovement[0]){
-            forward = new BABYLON.Vector3(
-                parseFloat(Math.sin(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed,
-                0,
-                parseFloat(Math.cos(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed
-            );
-            this.camera.playerBox.moveWithCollisions(forward);
+    _checkMove : function(ratioFps){
+        // We move the player by assigning the camera to him
+        this._checkUniqueMove(ratioFps,this.camera);
+        for (var i = 0; i < this.ghostPlayers.length; i++) {
+            // We move every ghost in ghostPlayers
+            this._checkUniqueMove(ratioFps,this.ghostPlayers[i]);
         }
-        if(this.camera.axisMovement[1]){
-            backward = new BABYLON.Vector3(
-                parseFloat(-Math.sin(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed,
-                0,
-                parseFloat(-Math.cos(parseFloat(this.camera.playerBox.rotation.y))) * relativeSpeed
-            );
-            this.camera.playerBox.moveWithCollisions(backward);
-        }
-        if(this.camera.axisMovement[2]){
-            left = new BABYLON.Vector3(
-                parseFloat(Math.sin(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed,
-                0,
-                parseFloat(Math.cos(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed
-            );
-            this.camera.playerBox.moveWithCollisions(left);
-        }
-        if(this.camera.axisMovement[3]){
-            right = new BABYLON.Vector3(
-                parseFloat(-Math.sin(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed,
-                0,
-                parseFloat(-Math.cos(parseFloat(this.camera.playerBox.rotation.y) + degToRad(-90))) * relativeSpeed
-            );
-            this.camera.playerBox.moveWithCollisions(right);
-        }
-        this.camera.playerBox.moveWithCollisions(new BABYLON.Vector3(0,(-1.5) * relativeSpeed ,0));
     },//\_checkMove
+
+    _checkUniqueMove : function(ratioFps, player) {
+        let relativeSpeed = this.speed / ratioFps;
+        var playerSelected = player
+        // We check if it's a ghost or not (only ghost has a head element)
+        if(playerSelected.head){
+            var rotationPoint = playerSelected.head.rotation;
+        }else{
+            var rotationPoint = playerSelected.playerBox.rotation;
+        }
+        if(playerSelected.axisMovement[0]){
+            forward = new BABYLON.Vector3(
+                parseFloat(Math.sin(parseFloat(rotationPoint.y))) * relativeSpeed, 
+                0, 
+                parseFloat(Math.cos(parseFloat(rotationPoint.y))) * relativeSpeed
+            );
+            playerSelected.playerBox.moveWithCollisions(forward);
+        }
+        if(playerSelected.axisMovement[1]){
+            backward = new BABYLON.Vector3(
+                parseFloat(-Math.sin(parseFloat(rotationPoint.y))) * relativeSpeed, 
+                0, 
+                parseFloat(-Math.cos(parseFloat(rotationPoint.y))) * relativeSpeed
+            );
+            playerSelected.playerBox.moveWithCollisions(backward);
+        }
+        if(playerSelected.axisMovement[2]){
+            left = new BABYLON.Vector3(
+                parseFloat(Math.sin(parseFloat(rotationPoint.y) + degToRad(-90))) * relativeSpeed, 
+                0, 
+                parseFloat(Math.cos(parseFloat(rotationPoint.y) + degToRad(-90))) * relativeSpeed
+            );
+            playerSelected.playerBox.moveWithCollisions(left);
+        }
+        if(playerSelected.axisMovement[3]){
+            right = new BABYLON.Vector3(
+                parseFloat(-Math.sin(parseFloat(rotationPoint.y) + degToRad(-90))) * relativeSpeed, 
+                0, 
+                parseFloat(-Math.cos(parseFloat(rotationPoint.y) + degToRad(-90))) * relativeSpeed
+            );
+            playerSelected.playerBox.moveWithCollisions(right);
+        }
+        playerSelected.playerBox.moveWithCollisions(new BABYLON.Vector3(0,(-1.5) * relativeSpeed ,0));
+    },//\_checkUniqueMove
 
     getDamage : function(damage){
         var damageTaken = damage;
@@ -261,12 +297,14 @@ Player.prototype = {
             this.camera.health-=damageTaken;
         }else{
             //Otherwise he's dead
-            console.log('Vous êtes mort...');
-            this.playerDead();
+            console.log('You\'re dead...');
+            this.playerDead(whoDamage)
         }       
     },//\_getDamage
 
-    playerDead : function(i) {
+    playerDead : function(whoKilled) {
+        // Function called to announce the destruction of the player
+        sendPostMortem(whoKilled);
         this.deadCamera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 
         1, 0.8, 10, new BABYLON.Vector3(
             this.camera.playerBox.position.x, 
@@ -292,8 +330,57 @@ Player.prototype = {
         var newPlayer = this;
         var canvas = this.game.scene.getEngine().getRenderingCanvas();
         setTimeout(function(){ 
-            newPlayer._initCamera(newPlayer.game.scene, canvas);
+            newPlayer._initCamera(newPlayer.game.scene, canvas, newPlayer.spawnPoint);
+            // resuscitate the player among other participants
+            newPlayer.launchRessurection();
         }, 4000);
     },//\playerDead
+
+    // Multiplayers functions
+
+    sendNewData : function(data){
+        updateGhost(data);
+    },//\sendNewData
+
+    launchRessurection : function(){
+        ressurectMe();
+    },//\launchRessurection
+
+    // Send current player data
+    sendActualData : function(){
+        return {
+            actualTypeWeapon : this.camera.weapons.actualWeapon,
+            armor : this.camera.armor,
+            life : this.camera.health,
+            position  : this.camera.playerBox.position,
+            rotation : this.camera.playerBox.rotation,
+            axisMovement : this.camera.axisMovement
+        }
+    },//\ sendActualData
+
+    //Process the data received to assign them to the ghosts present on the scene
+    updateLocalGhost : function(data){
+        ghostPlayers = this.ghostPlayers;
+        
+        for (var i = 0; i < ghostPlayers.length; i++) {
+            if(ghostPlayers[i].idRoom === data.id){
+                var boxModified = ghostPlayers[i].playerBox;
+                // On applique un correctif sur Y, qui semble être au mauvais endroit
+                if(data.position){
+                    boxModified.position = new BABYLON.Vector3(data.position.x,data.position.y-2.76,data.position.z);
+                }
+                if(data.axisMovement){
+                    ghostPlayers[i].axisMovement = data.axisMovement;
+                }
+                if(data.rotation){
+                    ghostPlayers[i].head.rotation.y = data.rotation.y;
+                }
+                if(data.axisMovement){
+                    ghostPlayers[i].axisMovement = data.axisMovement;
+                }
+            }
+            
+        }
+    }//\updateLocalGhost
 
 }//\Player.prototype

@@ -1,9 +1,9 @@
 //Main game /rendering component
 
 // When page is loaded, the game is launched in the targeted canvas
-document.addEventListener("DOMContentLoaded", function () {
-    new Game('renderCanvas');
-}, false);
+// document.addEventListener("DOMContentLoaded", function () {
+//     new Game('renderCanvas');
+// }, false);
 
 //Game engine
 Game = function(canvasId) {
@@ -75,6 +75,8 @@ Game.prototype = {
     //Move all the rockets
     renderRockets : function() {
         for (var i = 0; i < this._rockets.length; i++) {
+            //Parameters of the rocket
+            var paramsRocket = this._rockets[i].paramsRocket;
             //We create a radius which goes from the base of the rocket towards the front
             var rayRocket = new BABYLON.Ray(this._rockets[i].position,this._rockets[i].direction);
             //We look at what is the first object we touch
@@ -99,10 +101,13 @@ Game.prototype = {
                     //We do a round of mouth for each player of the scene
                     if (this._PlayerData.isAlive && this._PlayerData.camera.playerBox && explosionRadius.intersectsMesh(this._PlayerData.camera.playerBox)) {
                         //Sends to the damage allocation functions
-                        this._PlayerData.getDamage(30);
-                        //console.log('hit');
-                    }
-                    
+                        if(this._rockets[i].owner){
+                            var whoDamage = this._rockets[i].owner;
+                        }else{
+                            var whoDamage = false;
+                        }
+                        this._PlayerData.getDamage(paramsRocket.damage,whoDamage);
+                    }                    
                     this._explosionRadius.push(explosionRadius);
                 }
                 this._rockets[i].dispose();
@@ -110,9 +115,9 @@ Game.prototype = {
                 this._rockets.splice(i,1);
             }else{
                 //Update the sepped according the FPS
-                let relativeSpeed = 1 / ((this.fps)/60);
+                let relativeSpeed = paramsRocket.ammos.rocketSpeed / ((this.fps)/60);
                 //The rocket will always move from the center
-                this._rockets[i].position.addInPlace(this._rockets[i].direction.scale(relativeSpeed))
+                this._rockets[i].position.addInPlace(this._rockets[i].direction.scale(relativeSpeed));
             }
         };
     },//\renderRockets
@@ -160,6 +165,53 @@ Game.prototype = {
             }
         }
     },//\renderWeapons
+
+    createGhostRocket : function(dataRocket) {
+        var positionRocket = dataRocket[0];
+        var rotationRocket = dataRocket[1];
+        var directionRocket = dataRocket[2];
+        var idPlayer = dataRocket[3];
+    
+        newRocket = BABYLON.Mesh.CreateBox('rocket', 0.5, this.scene);
+        
+        newRocket.scaling = new BABYLON.Vector3(1,0.7,2);
+    
+        newRocket.direction = new BABYLON.Vector3(directionRocket.x,directionRocket.y,directionRocket.z);
+    
+        newRocket.position = new BABYLON.Vector3(
+            positionRocket.x + (newRocket.direction.x * 1) , 
+            positionRocket.y + (newRocket.direction.y * 1) ,
+            positionRocket.z + (newRocket.direction.z * 1));
+        newRocket.rotation = new BABYLON.Vector3(rotationRocket.x,rotationRocket.y,rotationRocket.z);
+    
+        newRocket.scaling = new BABYLON.Vector3(0.5,0.5,1);
+        newRocket.isPickable = false;
+        newRocket.owner = idPlayer;
+    
+        newRocket.material = new BABYLON.StandardMaterial("textureWeapon", this.scene, false, BABYLON.Mesh.DOUBLESIDE);
+        newRocket.material.diffuseColor = this.armory.weapons[2].setup.colorMesh;
+        newRocket.paramsRocket = this.armory.weapons[2].setup;
+        
+        game._rockets.push(newRocket);
+    },//\createGhostRocket
+
+    createGhostLaser : function(dataRocket){
+        var position1 = dataRocket[0];
+        var position2 = dataRocket[1];
+        var idPlayer = dataRocket[2];
+    
+        let line = BABYLON.Mesh.CreateLines("lines", [
+                    position1,
+                    position2
+                ], this.scene);
+        var colorLine = new BABYLON.Color3(Math.random(), Math.random(), Math.random());
+        line.color = colorLine;
+        line.enableEdgesRendering();
+        line.isPickable = false;
+        line.edgesWidth = 40.0;
+        line.edgesColor = new BABYLON.Color4(colorLine.r, colorLine.g, colorLine.b, 1);
+        this._lasers.push(line);
+    },//\createGhostLaser
 
 };//\Game.prototype
 

@@ -5,20 +5,63 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
         <title>JUST SQUARES</title>
         <meta name="description" content="Just Squares is an Webgl FPS multiplayer game realised with Babylon and Node JS." />
-        <!-- Scripts to use Babylon - PEP is JQUERY to use the app on smartphone -->
-        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <!-- SCRIPTS DE BASE -->
+        <script src="http://www.babylonjs.com/babylon.js"></script>
         <script src="https://code.jquery.com/pep/0.4.1/pep.js"></script>
-        <!-- CSS -->
+        <script src="/socket.io/socket.io.js"></script>
+        <!-- FEUILLES CSS -->
         <link rel="stylesheet" type="text/css" href="css/mainStyle.css" />
     </head>
     <body>
+        <div id="topHud">
+            <div id="eventConnection"></div>
+            <div id="leaderBoard">
+                <h2>Leaderboard</h2>
+                <ul>
+                    <li><p><span class="nameLeaderboard" id="player0"></span><span class="scoreLeaderboard" id="scorePlayer0"></span></p></li>
+                    <li><p><span class="nameLeaderboard" id="player1"></span><span class="scoreLeaderboard" id="scorePlayer1"></span></p></li>
+                    <li><p><span class="nameLeaderboard" id="player2"></span><span class="scoreLeaderboard" id="scorePlayer2"></span></p></li>
+                    <li><p><span class="nameLeaderboard" id="player3"></span><span class="scoreLeaderboard" id="scorePlayer3"></span></p></li>
+                    <li><p><span class="nameLeaderboard" id="player4"></span><span class="scoreLeaderboard" id="scorePlayer4"></span></p></li>
+                </ul>
+                <p id="identityGame">You are <span id="gameName"></span>. Kill them all!<p>
+            </div>
+        </div>
+
+        <div id="bottomHud">
+            <div id="statusPlayer">
+                <div id="lifeBox">
+                    <img src="assets/icons/health.svg">
+                    <p><span id="textHealth">0</span> / 100</p>
+                </div>
+                <div id="armorBox">
+                    <img src="assets/icons/armor.svg">
+                    <p><span id="textArmor">0</span> / 100</p>
+                </div>
+            </div>
+            <div id="statusAmmo">
+                <p id="typeWeapon"></p>
+                <div id="ammoBox">
+                    <img src="assets/icons/ammos.svg">
+                    <p><span id="numberAmmos"></span> / <span id="totalAmmos"></span></p>
+                </div>
+            </div>
+        </div>
+        <div id="announcementKill" class="annoucementClose">
+            <div id="interiorDiv">
+                <p id="textAnouncement"></p>
+            </div>
+        </div>
+        <div id="crossHair"><img  src="assets/icons/target.svg" /></div>
         <canvas id="renderCanvas"></canvas>
     </body>
-
-    <!-- Babylon scripts developed for the game -->
+    
+    <!-- SCRIPTS BABYLON -->
     <script src="js/Game.js"></script>
     <script src="js/Player.js"></script>
     <script src="js/Arena.js"></script>
     <script src="js/Weapons.js"></script>
     <script src="js/Armory.js"></script>
+    <script src="js/GhostPlayer.js"></script>
+    <script src="js/NetworkManager.js"></script>
 </html>

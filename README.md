@@ -6,6 +6,8 @@
 
 ![Babylon logo](readme-img/intro-logo.png)
 
+`node server.js`
+
 
 
 ## Ressources

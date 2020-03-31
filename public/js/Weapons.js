@@ -161,10 +161,13 @@ Weapons.prototype = {
     //newRocket.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
     newRocket.material.diffuseColor = this.Armory.weapons[idWeapon].setup.colorMesh;
     newRocket.paramsRocket = this.Armory.weapons[idWeapon].setup;
+    newRocket.isPickable = false;
+    // We need position, rotation and direction
+		sendGhostRocket(newRocket.position,newRocket.rotation,newRocket.direction);
     // Access to player in registerBeforeRender
-    var Player = this.Player;
     this.Player.game._rockets.push(newRocket);//Create rocket and send it to Game.js
-    newRocket.registerAfterRender(function(){
+
+    /*newRocket.registerAfterRender(function(){
       // We move roquet forward
       newRocket.translate(new BABYLON.Vector3(0,0,1),1,0);
       // Ray to forward
@@ -196,7 +199,7 @@ Weapons.prototype = {
         }
         newRocket.dispose();
       }
-    })//\newRocket
+    })//\newRocket*/
   },//\createRocket
 
   shootBullet : function(meshFound) {
@@ -206,6 +209,9 @@ Weapons.prototype = {
     var setupWeapon = this.Armory.weapons[idWeapon].setup;    
     if(meshFound.hit && meshFound.pickedMesh.isPlayer){
       // We hit a player
+      var damages = this.Armory.weapons[idWeapon].setup.damage;
+      // We send the damage as well as the enemy found thanks to its name
+      sendDamages(damages,meshFound.pickedMesh.name)
     }else{
       //  The weapon does not hit a player
     console.log('Not Hit Bullet');
@@ -235,8 +241,12 @@ Weapons.prototype = {
       line.edgesColor = new BABYLON.Color4(colorLine.r, colorLine.g, colorLine.b, 1);
       if(meshFound.pickedMesh.isPlayer){
           // We inflict damage on the player
+          var damages = this.Armory.weapons[idWeapon].setup.damage;
+          sendDamages(damages,meshFound.pickedMesh.name)
       }
-      //We push laser in array so the drawing disappear after some time
+      // We send the starting point and the ending point
+			sendGhostLaser(laserPosition,meshFound.pickedPoint);
+      // We push laser in array so the drawing disappear after some time
       this.Player.game._lasers.push(line);
     }
   },//\createLaser
@@ -247,10 +257,10 @@ Weapons.prototype = {
 	  var idWeapon = this.inventory[this.actualWeapon].typeWeapon;	
     var setupWeapon = this.Armory.weapons[idWeapon].setup;
     //Check the distance between players
-    if(meshFound.hit 
-    && meshFound.distance < setupWeapon.range*5 
-    && meshFound.pickedMesh.isPlayer){
+    if(meshFound.hit && meshFound.distance < setupWeapon.range*5 && meshFound.pickedMesh.isPlayer){
       // We hit a player
+      var damages = this.Armory.weapons[idWeapon].setup.damage;
+      sendDamages(damages,meshFound.pickedMesh.name)
     }else{
       // The weapon does not hit a player
       console.log('Not Hit CaC')

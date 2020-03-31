@@ -30,12 +30,12 @@ socket.on('newPlayer',function(dataNewPlayer){
     }
     // game.displayScore(score);
 
-    // // Vérifie les joueurs qui se connectent
-    // checkIfNewGhost(room);
+    // Check the players who connect
+    checkIfNewGhost(room);
 });
-// Vérifie les joueurs qui se déconnectent
-// socket.on('disconnectPlayer', function(room){
-//     checkIfGhostDisconnect(room);
+// Check the players who log out
+socket.on('disconnectPlayer', function(room){
+checkIfGhostDisconnect(room);
 // });
 // ================================================
 
@@ -99,7 +99,7 @@ var updateGhost = function(data){ // update all the ghosts with room data
 var deleteGhost = function(index,position){ // delete the ghost by the index
     deleteGameGhost(game,index);
     myRoom.splice(position,1);
-    // ICI fonction pour détruire le ghost du jeu
+    // here function to destroy the ghost of the game
 }
 var sendGhostRocket = function(position, rotation, direction){
     socket.emit('newRocket',[position, rotation, direction, personalRoomId]);
@@ -126,56 +126,60 @@ var destroyPropsToServer = function(idServer,type){ // update all the ghosts wit
     socket.emit('updatePropsRemove',[idServer,type]);
 }
 // ================================================
-// socket.on('requestPosition', function(room){
-//     var dataToSend = [game._PlayerData.sendActualData(),personalRoomId];
-//     socket.emit('updateData',dataToSend);
-// });
+socket.on('requestPosition', function(room){
+    var dataToSend = [game._PlayerData.sendActualData(),personalRoomId];
+    socket.emit('updateData',dataToSend);
+});
 
-// socket.on ('updatePlayer', function (arrayData) {
-//     if(arrayData.id != personalRoomId){
-//         if(arrayData.ghostCreationNeeded){
-//             var newGhostPlayer = GhostPlayer(game,arrayData,arrayData.id);
-//             game._PlayerData.ghostPlayers.push(newGhostPlayer);
-//         }else{
-//             game._PlayerData.updateLocalGhost(arrayData);
-//         }
-//     }
-// });
+socket.on ('updatePlayer', function (arrayData) {
+    if(arrayData.id != personalRoomId){
+        if(arrayData.ghostCreationNeeded){
+            var newGhostPlayer = GhostPlayer(game,arrayData,arrayData.id);
+            game._PlayerData.ghostPlayers.push(newGhostPlayer);
+        }else{
+            game._PlayerData.updateLocalGhost(arrayData);
+        }
+    }
+});
 
-// socket.on ('createGhostRocket', function (arrayData) {
-//     if(arrayData[3] != personalRoomId){
-//         game.createGhostRocket(arrayData);
-//     }
-// });
+socket.on ('createGhostRocket', function (arrayData) {
+    if(arrayData[3] != personalRoomId){
+        game.createGhostRocket(arrayData);
+    }
+});
 
-// socket.on ('createGhostLaser', function (arrayData) {
-//     if(arrayData[2] != personalRoomId){
-//         game.createGhostLaser(arrayData);
-//     }
-// });
+socket.on ('createGhostLaser', function (arrayData) {
+    if(arrayData[2] != personalRoomId){
+        game.createGhostLaser(arrayData);
+    }
+});
 
-// socket.on ('giveDamage', function (arrayData) {
-//     if(arrayData[1] == personalRoomId){
-//         game._PlayerData.getDamage(arrayData[0],arrayData[2]);
-//     }
+socket.on ('giveDamage', function (arrayData) {
+    if(arrayData[1] == personalRoomId){
+        console.log('receive damage')
+        game._PlayerData.getDamage(arrayData[0],arrayData[2]);
+    }
     
-// });
-// socket.on ('killGhostPlayer', function (arrayData) {
-//     var idArray = arrayData[0];
-//     var roomScore = arrayData[1];
-//     if(idArray[0] != personalRoomId){
-//         deleteGameGhost(game,idArray[0]);
-//     }
-//     if(idArray[1] == personalRoomId){
-//         game._PlayerData.newDeadEnnemy(idArray[2]);
-//     }
-//     game.displayScore(roomScore);
-// });
-// socket.on ('ressurectGhostPlayer', function (idPlayer) {
-//     if(idPlayer != personalRoomId){
-//         deleteGameGhost(game,idPlayer);
-//     }
-// });
+});
+
+socket.on ('killGhostPlayer', function (arrayData) {
+    var idArray = arrayData[0];
+    var roomScore = arrayData[1];
+    if(idArray[0] != personalRoomId){
+        deleteGameGhost(game,idArray[0]);
+    }
+    if(idArray[1] == personalRoomId){
+        // game._PlayerData.newDeadEnnemy(idArray[2]);
+    }
+    // game.displayScore(roomScore);
+});
+
+socket.on ('ressurectGhostPlayer', function (idPlayer) {
+    if(idPlayer != personalRoomId){
+        deleteGameGhost(game,idPlayer);
+    }
+});
+
 // socket.on ('deleteProps', function (deleteProp) {
 //     game._ArenaData.deletePropFromServer(deleteProp)
 // });

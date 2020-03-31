@@ -206,6 +206,9 @@ Weapons.prototype = {
     var setupWeapon = this.Armory.weapons[idWeapon].setup;    
     if(meshFound.hit && meshFound.pickedMesh.isPlayer){
       // We hit a player
+      var damages = this.Armory.weapons[idWeapon].setup.damage;
+      // We send the damage as well as the enemy found thanks to its name
+      sendDamages(damages,meshFound.pickedMesh.name)
     }else{
       //  The weapon does not hit a player
     console.log('Not Hit Bullet');
@@ -235,6 +238,8 @@ Weapons.prototype = {
       line.edgesColor = new BABYLON.Color4(colorLine.r, colorLine.g, colorLine.b, 1);
       if(meshFound.pickedMesh.isPlayer){
           // We inflict damage on the player
+          var damages = this.Armory.weapons[idWeapon].setup.damage;
+          sendDamages(damages,meshFound.pickedMesh.name)
       }
       //We push laser in array so the drawing disappear after some time
       this.Player.game._lasers.push(line);
@@ -247,10 +252,10 @@ Weapons.prototype = {
 	  var idWeapon = this.inventory[this.actualWeapon].typeWeapon;	
     var setupWeapon = this.Armory.weapons[idWeapon].setup;
     //Check the distance between players
-    if(meshFound.hit 
-    && meshFound.distance < setupWeapon.range*5 
-    && meshFound.pickedMesh.isPlayer){
+    if(meshFound.hit && meshFound.distance < setupWeapon.range*5 && meshFound.pickedMesh.isPlayer){
       // We hit a player
+      var damages = this.Armory.weapons[idWeapon].setup.damage;
+      sendDamages(damages,meshFound.pickedMesh.name)
     }else{
       // The weapon does not hit a player
       console.log('Not Hit CaC')
