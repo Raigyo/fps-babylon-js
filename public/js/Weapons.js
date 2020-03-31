@@ -1,6 +1,7 @@
 //Weapons component
 
 Weapons = function(Player) {
+
   //Instanciation:
   // To access Player component
   this.Player = Player;
@@ -43,17 +44,31 @@ Weapons = function(Player) {
   var _this = this;
   // Used for shooting cadency
   var engine = Player.game.scene.getEngine();
-  //Detect if player can shoot or not
-  	Player.game.scene.registerBeforeRender(function() {
+
+  //Detect if player can shoot or not + define time elapsed between each reload
+	this._animationDelta = 0; 
+	Player.game.scene.registerBeforeRender(function() {
 	    if (!_this.canFire) {
-	        _this._deltaFireRate -= engine.getDeltaTime();//DeltaTime = real elapsed time period
-	        if (_this._deltaFireRate <= 0  && _this.Player.isAlive) {
-	            _this.canFire = true;//when 0 => we can shoot again
-	            _this._deltaFireRate = _this.fireRate;//reinit _deltaFireRate
-	        }
+        // We animate the current weapon
+        _this.animateMovementWeapon(_this._animationDelta); 
+        // We increase animationDelta
+        _this._animationDelta += engine.getDeltaTime();
+        _this._deltaFireRate -= engine.getDeltaTime();
+        if (_this._deltaFireRate <= 0 && _this.Player.isAlive) {
+          // When we have finished the animation, we return the weapon to its initial position
+          _this.inventory[_this.actualWeapon].position = 
+          _this.inventory[_this.actualWeapon].basePosition.clone();
+          _this.inventory[_this.actualWeapon].rotation = 
+          _this.inventory[_this.actualWeapon].baseRotation.clone();	            
+          _this.canFire = true;
+          _this._deltaFireRate = _this.fireRate;	            
+          // When we can shoot, we return animationDelta to 0
+          _this._animationDelta = 0;
+        }
 	    }
-	});
-};
+  });//\registerBeforeRender
+  
+};//\Weapons
 
 Weapons.prototype = {
   newWeapon : function(typeWeapon) {
@@ -77,6 +92,9 @@ Weapons.prototype = {
             newWeapon.material = materialWeapon;            
             newWeapon.typeWeapon = i;
             newWeapon.isActive = false;
+            // Basic positions
+            newWeapon.basePosition = newWeapon.position;
+            newWeapon.baseRotation = newWeapon.rotation;
             break;
         }else if(i === this.Armory.weapons.length -1){
             console.log('UNKNOWN WEAPON');
@@ -167,39 +185,6 @@ Weapons.prototype = {
     // Access to player in registerBeforeRender
     this.Player.game._rockets.push(newRocket);//Create rocket and send it to Game.js
 
-    /*newRocket.registerAfterRender(function(){
-      // We move roquet forward
-      newRocket.translate(new BABYLON.Vector3(0,0,1),1,0);
-      // Ray to forward
-      var rayRocket = new BABYLON.Ray(newRocket.position,newRocket.direction);
-      // Check first object hit
-      var meshFound = newRocket.getScene().pickWithRay(rayRocket);
-      // If the distance to the first object hit is less than 10, we destroy the rocket
-      if(!meshFound || meshFound.distance < 10){
-        // We check that we have touched something
-        if(meshFound.pickedMesh){
-            // We create a sphere that will represent the impact area
-            var explosionRadius = BABYLON.Mesh.CreateSphere("sphere", 5.0, 20, Player.game.scene);
-            // We position the sphere where there was an impact
-            explosionRadius.position = meshFound.pickedPoint;
-            // We make sure that the explosions are not considered for the Ray of the rocket
-            explosionRadius.isPickable = false;
-            // We create an orange material
-            explosionRadius.material = new BABYLON.StandardMaterial("textureExplosion", Player.game.scene);
-            explosionRadius.material.diffuseColor = new BABYLON.Color3(1,0.6,0);
-            explosionRadius.material.specularColor = new BABYLON.Color3(0,0,0);
-            explosionRadius.material.alpha = 0.8;
-            // Each frame, we lower the opacity and we delete the object when the alpha has reached 0
-            explosionRadius.registerAfterRender(function(){
-                explosionRadius.material.alpha -= 0.02;
-                if(explosionRadius.material.alpha<=0){
-                    explosionRadius.dispose();
-                }
-            });
-        }
-        newRocket.dispose();
-      }
-    })//\newRocket*/
   },//\createRocket
 
   shootBullet : function(meshFound) {
@@ -313,18 +298,68 @@ Weapons.prototype = {
       }
     }
 
-    //Change weapons
+    //Change weapons + animation
     if(this.actualWeapon != nextPossibleWeapon){
-      // We say to our current weapon that it is no longer active
+      // The weapon is told to reposition itself to its original location
+      this.inventory[this.actualWeapon].position = 
+      this.inventory[this.actualWeapon].basePosition.clone();      
+      this.inventory[this.actualWeapon].rotation = 
+      this.inventory[this.actualWeapon].baseRotation.clone();      
+      // We reset _animationDelta
+      this._animationDelta = 0;
       this.inventory[this.actualWeapon].isActive = false;
-      // We change the current weapon with the one we found
+      this.inventory[this.actualWeapon]
       this.actualWeapon = nextPossibleWeapon;
-      // We tell our chosen weapon that it is the active weapon
-      this.inventory[this.actualWeapon].isActive = true;  
-      // We update the cadence of the weapon
+      this.inventory[this.actualWeapon].isActive = true;
       this.fireRate = this.Armory.weapons[this.inventory[this.actualWeapon].typeWeapon].setup.cadency;
       this._deltaFireRate = this.fireRate;
     }
-  }//\nextWeapon
+  },//\nextWeapon
+
+  animateMovementWeapon : function(step){
+    if(!this.Player.isAlive){
+        return;
+    }
+    let typeWeapon = this.inventory[this.actualWeapon].typeWeapon;
+    
+    // We divide step by the timeAnimation value of the weapon
+    // We multiply this value by 180
+    let result = (step / this.Armory.weapons[typeWeapon].timeAnimation) * 180;
+    // If the value exceeds 180, it means that step is greater than timeAnimation
+    // In this case, we make sure that result never exceeds 180
+    if(result>180){
+        result = 180;
+    }
+    // The value 100 is used to round
+    let degSin = Math.round(Math.sin(degToRad(result))*100)/100; 
+    // We determine the movement parameters for each type of weapon
+    switch(typeWeapon){
+      case 0:
+          var positionNeeded = new BABYLON.Vector3(0,-0.5,0);
+          var rotationNeeded = new BABYLON.Vector3(-0.5,0,0);
+          break;
+      case 1:
+          var positionNeeded = new BABYLON.Vector3(0.05,0.05,0);
+          var rotationNeeded = new BABYLON.Vector3(0.1,0.1,0);
+          break;
+      case 2:
+          var positionNeeded = new BABYLON.Vector3(0,0.4,0);
+          var rotationNeeded = new BABYLON.Vector3(1.3,0,0);
+          break;
+      case 3:
+          var positionNeeded = new BABYLON.Vector3(0,0,-1);
+          var rotationNeeded = new BABYLON.Vector3(0,0,0);
+          break;
+    }
+    // We collect the basic position and rotation
+    var baseRotation = this.inventory[this.actualWeapon].baseRotation.clone();
+    var basePosition = this.inventory[this.actualWeapon].basePosition.clone();
+    // We assign the values we are interested in step by step
+    this.inventory[this.actualWeapon].rotation = baseRotation.clone() ;
+    this.inventory[this.actualWeapon].rotation.x -= (rotationNeeded.x*degSin);
+    this.inventory[this.actualWeapon].position = basePosition.clone() ;
+    this.inventory[this.actualWeapon].position.y += (positionNeeded.y*degSin);
+    this.inventory[this.actualWeapon].position.z += (positionNeeded.z*degSin);
+  }//\animateMovementWeapon
 
 };//\Weapons.prototype
