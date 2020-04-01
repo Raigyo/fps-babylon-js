@@ -88,6 +88,40 @@ Player = function(game, canvas) {
             _this.sendNewData(data)
         }
     }, false);//\mousemove
+
+    //Event listener: jump with spacebar
+    // Player can jump or not
+    _this.camera.canJump = true;
+
+    // Jump height
+    _this.jumpHeight = 10;
+
+    // Character height
+    _this.originHeight = _this.camera.playerBox.position.clone();
+    window.addEventListener("keypress", function(evt) {
+        if(evt.keyCode === 32){
+            
+        }
+    }, false);
+    window.addEventListener("keypress", function(evt) {
+        // Le keyCode 32 correspond à la bare espace
+        if(evt.keyCode === 32){
+            console.log('Jumped!');
+            if(_this.camera.canJump===true){
+                // We define the jump height at the player's current position
+                // plus the jumpHeight variable
+                _this.camera.jumpNeed = _this.camera.playerBox.position.y + _this.jumpHeight;
+                _this.camera.canJump=false;
+                // To see jump of other players
+                var data={
+                    jumpNeed : _this.camera.jumpNeed
+                };
+                _this.sendNewData(data);
+            }
+        }
+    }, false);
+
+
   
     // We get scene canvas
     var canvas = this.game.scene.getEngine().getRenderingCanvas();
@@ -183,6 +217,7 @@ Player.prototype = {
         this.textArmor.innerText = this.camera.armor;   
         // Cam reinit after respawn
         //this.camera.setTarget(BABYLON.Vector3.Zero());
+        this.camera.canJump = true;
         this.game.scene.activeCamera = this.camera;
         //Activate collision/hitbox on player
         var hitBoxPlayer = BABYLON.Mesh.CreateBox("hitBoxPlayer", 3, scene);
@@ -286,7 +321,54 @@ Player.prototype = {
             );
             playerSelected.playerBox.moveWithCollisions(right);
         }
-        playerSelected.playerBox.moveWithCollisions(new BABYLON.Vector3(0,(-1.5) * relativeSpeed ,0));
+        if(playerSelected.jumpNeed){
+            // Lerp (softened movement to a position)
+            percentMove = playerSelected.jumpNeed - playerSelected.playerBox.position.y;
+            // Axis of movement
+            up = new BABYLON.Vector3(0,percentMove/4 *  relativeSpeed,0);
+            playerSelected.playerBox.moveWithCollisions(up);
+            // We check if the player has approximately reached the desired height
+            if(playerSelected.playerBox.position.y + 1 > playerSelected.jumpNeed){
+                // If this is the case, we prepare airTime
+                playerSelected.airTime = 0;
+                playerSelected.jumpNeed = false;
+            }
+        }else{
+            // If the ascent is complete, we descend
+            // We draw a radius from the player
+            var rayPlayer = new BABYLON.Ray(playerSelected.playerBox.position,new BABYLON.Vector3(0,-1,0));
+            // We look at the first object we touch
+            // We exclude all meshes that belong to the player
+            var distPlayer = this.game.scene.pickWithRay(rayPlayer, function (item) {
+                if (item.name == "hitBoxPlayer" || item.id == "headMainPlayer" || item.id == "bodyGhost"  || item.isPlayer)
+                    return false;
+                else
+                    return true;
+            });
+            // isMain permet de vérifier si c'est le joueur
+            if(playerSelected.isMain){
+                // targetHeight is equal to the height of the character
+                var targetHeight = this.originHeight.y;
+            }else{
+                // if it's a ghost, we set the height at 3
+                var targetHeight = 3;
+            }
+            // If the distance from the ground is less than or equal to the height of the player 
+            //-> We have touched the ground
+            if(distPlayer.distance <= targetHeight){
+                // If he's the main player and he can't jump anymore
+                if(playerSelected.isMain && !playerSelected.canJump){
+                    playerSelected.canJump = true;
+                }
+                // We reset airTime to 0
+                playerSelected.airTime = 0;
+            }else{
+                // Otherwise, we increase airTime
+                playerSelected.airTime++;
+                // And we move the player down, with a value multiplied by airTime
+                playerSelected.playerBox.moveWithCollisions(new BABYLON.Vector3(0,(-playerSelected.airTime/30) * relativeSpeed ,0));
+            }
+        }
     },//\_checkUniqueMove
 
     getDamage : function(damage){
@@ -380,7 +462,7 @@ Player.prototype = {
         for (var i = 0; i < ghostPlayers.length; i++) {
             if(ghostPlayers[i].idRoom === data.id){
                 var boxModified = ghostPlayers[i].playerBox;
-                // On applique un correctif sur Y, qui semble être au mauvais endroit
+                // We apply a fix on Y, which seems to be in the wrong place
                 if(data.position){
                     boxModified.position = new BABYLON.Vector3(data.position.x,data.position.y-2.76,data.position.z);
                 }
@@ -389,6 +471,9 @@ Player.prototype = {
                 }
                 if(data.rotation){
                     ghostPlayers[i].head.rotation.y = data.rotation.y;
+                }
+                if(data.jumpNeed){
+                    ghostPlayers[i].jumpNeed = data.jumpNeed;
                 }
                 if(data.axisMovement){
                     ghostPlayers[i].axisMovement = data.axisMovement;
