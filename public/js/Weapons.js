@@ -13,6 +13,8 @@ Weapons = function(Player) {
   this.topPositionY = -0.5;
   // We add the inventory
   this.inventory = [];
+  // Temporary ammo bag, until the weapon is owned
+	this.tempAmmosBag = [];
   // Create close combat weapon
 	var crook = this.newWeapon('Crook')
 	this.inventory[0] = crook;
@@ -49,8 +51,13 @@ Weapons = function(Player) {
 	this._animationDelta = 0; 
 	Player.game.scene.registerBeforeRender(function() {
 	    if (!_this.canFire) {
-        // We animate the current weapon
-        _this.animateMovementWeapon(_this._animationDelta); 
+        // We check if the weapon is loaded or has no ammunition
+        if(_this.inventory[_this.actualWeapon].ammos == undefined || (
+          _this.inventory[_this.actualWeapon].ammos && 
+          _this.inventory[_this.actualWeapon].ammos>0)){
+          // We animate the current weapon if there are ammos
+          _this.animateMovementWeapon(_this._animationDelta); 
+        }        
         // We increase animationDelta
         _this._animationDelta += engine.getDeltaTime();
         _this._deltaFireRate -= engine.getDeltaTime();
@@ -76,29 +83,41 @@ Weapons.prototype = {
     //Loop: search through all of the weapons in Armory for the weapon that has the same id 
     //as the weapon currently in hand.
     for (var i = 0; i < this.Armory.weapons.length; i++) {
-        //typeWeapon = weapon parameter from Armory
-        if(this.Armory.weapons[i].name === typeWeapon){
-            newWeapon = BABYLON.Mesh.CreateBox('rocketLauncher', 0.5, this.Player.game.scene);
-            // Weapon dimension
-            newWeapon.scaling = new BABYLON.Vector3(1,0.7,2);
-             // Associated to the camera (so weapon moves following the camera)
-            newWeapon.parent = this.Player.camera;
-            // Then set the weapon position (after attaching it to the camera)
-            newWeapon.position = this.bottomPosition.clone();
-            newWeapon.isPickable = false;
-            // Add material to weapon
-            var materialWeapon = new BABYLON.StandardMaterial('rocketLauncherMat', this.Player.game.scene);
-            materialWeapon.diffuseColor=this.Armory.weapons[i].setup.colorMesh;
-            newWeapon.material = materialWeapon;            
-            newWeapon.typeWeapon = i;
-            newWeapon.isActive = false;
-            // Basic positions
-            newWeapon.basePosition = newWeapon.position;
-            newWeapon.baseRotation = newWeapon.rotation;
-            break;
-        }else if(i === this.Armory.weapons.length -1){
-            console.log('UNKNOWN WEAPON');
+      //typeWeapon = weapon parameter from Armory
+      if(this.Armory.weapons[i].name === typeWeapon){
+        newWeapon = BABYLON.Mesh.CreateBox('rocketLauncher', 0.5, this.Player.game.scene);
+        // Weapon dimension
+        newWeapon.scaling = new BABYLON.Vector3(1,0.7,2);
+          // Associated to the camera (so weapon moves following the camera)
+        newWeapon.parent = this.Player.camera;
+        // Then set the weapon position (after attaching it to the camera)
+        newWeapon.position = this.bottomPosition.clone();
+        newWeapon.isPickable = false;
+        // Add material to weapon
+        var materialWeapon = new BABYLON.StandardMaterial('rocketLauncherMat', this.Player.game.scene);
+        materialWeapon.diffuseColor=this.Armory.weapons[i].setup.colorMesh;
+        newWeapon.material = materialWeapon;            
+        newWeapon.typeWeapon = i;
+        newWeapon.isActive = false;
+        // Set the number of ammunition
+        if(this.Armory.weapons[i].setup.ammos){
+          newWeapon.ammos = this.Armory.weapons[i].setup.ammos.baseAmmos;
+          // If there is additional ammunition in the ammo bag
+          if(this.tempAmmosBag[i]){
+            newWeapon.ammos += this.tempAmmosBag[i];
+            // If the ammunition exceeds the maximum, it is brought back to a normal value
+            if(newWeapon.ammos > this.Armory.weapons[i].setup.ammos.maximum){
+              newWeapon.ammos = this.Armory.weapons[i].setup.ammos.maximum;
+            }
+          }
         }
+        // Basic positions
+        newWeapon.basePosition = newWeapon.position;
+        newWeapon.baseRotation = newWeapon.rotation;
+        break;
+      }else if(i === this.Armory.weapons.length -1){
+        console.log('UNKNOWN WEAPON');
+      }
     };
     return newWeapon
   },//\newWeapon
@@ -121,6 +140,8 @@ Weapons.prototype = {
       // Determines the screen size
       var renderWidth = this.Player.game.engine.getRenderWidth(true);
       var renderHeight = this.Player.game.engine.getRenderHeight(true);
+      // We collect the ammunition from the weapon
+			var weaponAmmos = this.inventory[this.actualWeapon].ammos;
       // Raycast (center of the screen)
       var direction = this.Player.game.scene.pick(renderWidth/2,renderHeight/2,function (item) {
           if (item.name == "playerBox" || item.name == "weapon" || item.id == "headMainPlayer")
@@ -130,17 +151,21 @@ Weapons.prototype = {
       });
       // If the weapon is a ranged weapon
       if(this.Armory.weapons[idWeapon].type === 'ranged'){
-        if(this.Armory.weapons[idWeapon].setup.ammos.type === 'rocket'){
-            // We have to fire a rocket
-            direction = direction.pickedPoint.subtractInPlace(this.Player.camera.playerBox.position);
-            direction = direction.normalize();
-            this.createRocket(this.Player.camera.playerBox,direction);
-        }else if(this.Armory.weapons[idWeapon].setup.ammos.type === 'bullet'){
-            // We have to shoot single bullets
-            this.shootBullet(direction);
-        }else{
-          // We have to shoot laser
-          this.createLaser(direction);
+        // If it remains some ammos
+        if(weaponAmmos>0){
+          if(this.Armory.weapons[idWeapon].setup.ammos.type === 'rocket'){
+              // We have to fire a rocket
+              direction = direction.pickedPoint.subtractInPlace(this.Player.camera.playerBox.position);
+              direction = direction.normalize();
+              this.createRocket(this.Player.camera.playerBox,direction);
+          }else if(this.Armory.weapons[idWeapon].setup.ammos.type === 'bullet'){
+              // We have to shoot single bullets
+              this.shootBullet(direction);
+          }else{
+            // We have to shoot laser
+            this.createLaser(direction);
+          }
+          this.inventory[this.actualWeapon].ammos--;
         }
       }else{
         // If it is not a ranged weapon, you must attack in close combat
@@ -360,6 +385,40 @@ Weapons.prototype = {
     this.inventory[this.actualWeapon].position = basePosition.clone() ;
     this.inventory[this.actualWeapon].position.y += (positionNeeded.y*degSin);
     this.inventory[this.actualWeapon].position.z += (positionNeeded.z*degSin);
-  }//\animateMovementWeapon
+  },//\animateMovementWeapon
+
+  /*if we collect ammunition, the function checks if the weapon compatible with this ammunition exists. 
+  If the weapon exists, it will increase the ammo of the weapon directly. 
+  Otherwise, it will fill the tempAmmoBag while waiting for the weapon to be created.*/
+  reloadWeapon : function(type,numberAmmos) {
+    var ammoHud = document.getElementById('ammosValue');
+    var existingWeapon = false;
+    // We assume that the weapon does not exist
+    for (var i = 0; i < this.inventory.length; i++) {
+      if(this.inventory[i].typeWeapon === type){
+        // If the weapon exists, we give it the ammunition
+        var existingWeapon = true;
+        if((this.inventory[i].ammos + numberAmmos) > 
+        this.Armory.weapons[i].setup.ammos.maximum){
+            this.inventory[i].ammos = this.Armory.weapons[i].setup.ammos.maximum
+        }else{
+            this.inventory[i].ammos += numberAmmos;
+        }
+        break;
+      }
+    }
+    // If the weapon does not exist, we add the ammunition to the ammo bag
+    if(!existingWeapon){        
+      if(!this.tempAmmosBag[type]){
+          this.tempAmmosBag[type]=0;
+      }
+      if((this.tempAmmosBag[type] + numberAmmos) > 
+      this.Armory.weapons[type].setup.ammos.maximum){
+          this.tempAmmosBag[type] = this.Armory.weapons[type].setup.ammos.maximum;
+      }else{
+          this.tempAmmosBag[type] += numberAmmos;
+      }
+    }     
+  },//\reloadWeapon
 
 };//\Weapons.prototype

@@ -6,7 +6,7 @@
 // }, false);
 
 //Game engine
-Game = function(canvasId) {
+Game = function(canvasId,playerConfig,props) {
     // Define canvas and Babylon engine
     var canvas = document.getElementById(canvasId);
     var engine = new BABYLON.Engine(canvas, true);
@@ -26,8 +26,9 @@ Game = function(canvasId) {
     _this.armory = armory;// Access Armory from Game
     var _player = new Player(_this, canvas);//Init instance of player    
     this._PlayerData = _player;// Access Player from Game
-    var _arena = new Arena(_this);//Init instance of arena
-    this._rockets = [];//The rockets generated in ¨Player.js"  
+    var _arena = new Arena(_this,props);//Init instance of arena+send props
+    this._ArenaData = _arena;//We need to access Arena
+    this._rockets = [];//The rockets generated in Player.js  
     this._explosionRadius = [];//Explosions from rockets        
     this._lasers = [];//lasers shoots
     // Game rendering using graphic engine
@@ -43,6 +44,8 @@ Game = function(canvasId) {
         _this.renderLaser();
         // We calculate the weapon animations
         _this.renderWeapons();
+        // We check props
+        _this._ArenaData._checkProps();
         //We render the scene
         _this.scene.render();
         // If launchBullets = true = shoot

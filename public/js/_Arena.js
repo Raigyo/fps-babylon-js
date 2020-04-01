@@ -1,6 +1,6 @@
 //Arena component
 
-Arena = function(game,props) {
+Arena = function(game) {
     this.game = game;
     var scene = game.scene;
 

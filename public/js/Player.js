@@ -145,7 +145,7 @@ Player = function(game, canvas) {
     _this.jumpHeight = 10;
     // Character height
     _this.originHeight = _this.camera.playerBox.position.clone();
-    
+
     //Event listener: jump with spacebar
     window.addEventListener("keypress", function(evt) {
         // KeyCode 32 corresponds to bare space
@@ -423,6 +423,28 @@ Player.prototype = {
             newPlayer.launchRessurection();
         }, 4000);
     },//\playerDead
+
+    // Give a bonus to the player
+    givePlayerBonus : function(what,howMany) {
+        
+        var typeBonus = what;
+        var amountBonus = howMany;
+        if(typeBonus === 'health'){
+            if(this.camera.health + amountBonus>100){
+                this.camera.health = 100;
+            }else{
+                this.camera.health += amountBonus;
+            }
+        }else if (typeBonus === 'armor'){
+            if(this.camera.armor + amountBonus>100){
+                this.camera.armor = 100;
+            }else{
+                this.camera.armor += amountBonus;
+            }
+        } 
+        this.textHealth.innerText = this.camera.health;
+        this.textArmor.innerText = this.camera.armor;
+    },//\givePlayerBonus
 
     // Multiplayers functions
 
