@@ -15,6 +15,11 @@ Player = function(game, canvas) {
     this.speed = 1;
     // Mouse movement speed
     this.angularSensibility = 200;
+    // Counter of killed in a row
+    this.killStreak = 0;
+    // Text boxes for announcements
+    this.displayAnnouncement = document.getElementById('announcementKill');
+    this.textDisplayAnnouncement = document.getElementById('textAnouncement');
     // Axis movement X et Z
     this.axisMovement = [false,false,false,false];//Movement axis X & Z
 
@@ -391,6 +396,12 @@ Player.prototype = {
     },//\_getDamage
 
     playerDead : function(whoKilled) {
+        // Dead announcement
+        if(this.displayAnnouncement.classList.contains("annoucementClose")){
+            this.displayAnnouncement.classList.remove("annoucementClose");
+        }
+        this.textDisplayAnnouncement.style.fontSize = '1rem';
+        this.textDisplayAnnouncement.innerText = 'Your\'re dead!';
         // Function called to announce the destruction of the player
         sendPostMortem(whoKilled);
         this.deadCamera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 
@@ -420,9 +431,67 @@ Player.prototype = {
         setTimeout(function(){ 
             newPlayer._initCamera(newPlayer.game.scene, canvas, newPlayer.spawnPoint);
             // resuscitate the player among other participants
+            newPlayer.displayAnnouncement.classList.add("annoucementClose");
             newPlayer.launchRessurection();
         }, 4000);
     },//\playerDead
+
+    //Kill msg management
+    newDeadEnnemy : function(nameKilled){
+        var _this = this;
+        // Si le nombre de kill d'affilé est à 0
+        if(this.killStreak === 0){
+            // If the number of kill in a row is 0
+            this.textDisplayAnnouncement.style.fontSize = '1rem';
+            // If no name is given, we say that Bob was killed
+            var messageDisplay = "You killed Bob"
+            if(nameKilled){
+                // If there is a given name, the name is displayed
+                var messageDisplay = "You killed " + nameKilled;
+            }
+        }else{
+            // We will look for the kill messages in Armory
+            var multiKillAnouncement = this.camera.weapons.Armory.multiKillAnnoucement;
+            // If we have already killed more than one person
+            // And if we have not reached the limit of 15 messages
+            if(this.killStreak<=multiKillAnouncement.length){
+                // We display the message associated with the number of kills
+                var messageDisplay = multiKillAnouncement[this.killStreak-1];
+                // We increase the size of the text in proportion to the rarity of the message
+                this.textDisplayAnnouncement.style.fontSize = (1+(this.killStreak/1.2))+'rem';
+            }else{
+                // If we have reached the limit of available messages
+                // We display the last of the list
+                var messageDisplay = multiKillAnouncement[multiKillAnouncement.length-1]
+            }
+            
+        }
+        // We increase the number of people killed as a result
+        this.killStreak++;
+        // If the advertiser is closed
+        if(this.displayAnnouncement.classList.contains("annoucementClose")){
+            // We open it
+            this.displayAnnouncement.classList.remove("annoucementClose");
+        }
+        // We display what is contained in messageDisplay
+        this.textDisplayAnnouncement.innerText = messageDisplay;
+
+        // If the counter has been created, it is reset
+        if(this.timerKillStreak){
+            clearTimeout(this.timerKillStreak);
+        }
+        // We set the counter at 3 seconds.
+        // After this time, the game will reset the kill counter to 0
+        // And close the message window
+        this.timerKillStreak = setTimeout(function(){ 
+            _this.killStreak = 0;
+            
+            if(!_this.displayAnnouncement.classList.contains("annoucementClose")){
+                _this.displayAnnouncement.classList.add("annoucementClose");
+
+            }
+        }, 3000);
+    },//\newDeadEnnemy
 
     // Give a bonus to the player
     givePlayerBonus : function(what,howMany) {
@@ -475,9 +544,11 @@ Player.prototype = {
         for (var i = 0; i < ghostPlayers.length; i++) {
             if(ghostPlayers[i].idRoom === data.id){
                 var boxModified = ghostPlayers[i].playerBox;
-                // We apply a fix on Y, which seems to be in the wrong place
+                
                 if(data.position){
-                    boxModified.position = new BABYLON.Vector3(data.position.x,data.position.y-2.76,data.position.z);
+                    boxModified.position = new BABYLON.Vector3(data.position.x,data.position.y,data.position.z);
+                    // We apply a fix on Y, which seems to be in the wrong place
+                    //boxModified.position = new BABYLON.Vector3(data.position.x,data.position.y-2.76,data.position.z);                    
                 }
                 if(data.axisMovement){
                     ghostPlayers[i].axisMovement = data.axisMovement;

@@ -196,12 +196,11 @@ Arena.prototype = {
                 this.game._PlayerData.givePlayerBonus(paramsBonus.type,paramsBonus.value);
                 
                 //If the player has recovered an object, we must notify the server.
+                // For the bonusBox loop
+                this.displayNewPicks(paramsBonus.message);
                 // For bonusBox
                 this.pickableDestroyed(this.bonusBox[i].idServer,'bonus');
-                // For weaponBox
-                this.pickableDestroyed(this.weaponBox[i].idServer, 'weapon');
-                // For ammosBox
-                this.pickableDestroyed(this.ammosBox[i].idServer, 'ammos');
+
                 // We delete the object
                 this.bonusBox[i].dispose();
                 this.bonusBox.splice(i,1)
@@ -245,6 +244,19 @@ Arena.prototype = {
                     Weapons.fireRate = Weapons.Armory.weapons[actualInventoryWeapon.typeWeapon].setup.cadency;
                     Weapons._deltaFireRate = Weapons.fireRate;
 
+                    Weapons.textAmmos.innerText = actualInventoryWeapon.ammos;
+                    Weapons.totalTextAmmos.innerText = 
+                    Weapons.Armory.weapons[actualInventoryWeapon.typeWeapon].setup.ammos.maximum;
+                    Weapons.typeTextWeapon.innerText = 
+                    Weapons.Armory.weapons[actualInventoryWeapon.typeWeapon].name;
+
+                    //If the player has recovered an object, we must notify the server.
+                    // For the weaponBox loop
+                    this.displayNewPicks(paramsWeapon.name);
+                    // For weaponBox
+                    this.pickableDestroyed(this.weaponBox[i].idServer, 'weapon');
+
+                    //We destroy the objects
                     this.weaponBox[i].dispose();
                     this.weaponBox.splice(i,1);
                 }                
@@ -260,7 +272,14 @@ Arena.prototype = {
                 var Weapons = this.game._PlayerData.camera.weapons;
 
                 Weapons.reloadWeapon(this.ammosBox[i].typeAmmo, paramsAmmos.refuel);
-    
+
+                //If the player has recovered an object, we must notify the server.
+                // For the ammosBox loop
+                this.displayNewPicks(paramsAmmos.meshAmmosName);
+                // For ammosBox
+                this.pickableDestroyed(this.ammosBox[i].idServer, 'ammos');
+
+                //We destroy the objects    
                 this.ammosBox[i].dispose();
                 this.ammosBox.splice(i,1);
             }            
@@ -347,6 +366,30 @@ Arena.prototype = {
     // Server part
     pickableDestroyed : function(idServer,type) {
         destroyPropsToServer(idServer,type);
-    }//\pickableDestroyed
+    },//\pickableDestroyed
+
+    // We use the class to make the window appear and disappear
+    displayNewPicks : function(typeBonus) {
+        // Retrieves the properties of the announcement window
+        var displayAnnouncement = document.getElementById('announcementKill');
+        var textDisplayAnnouncement = document.getElementById('textAnouncement');
+        
+        // If the window has announcementClose (and is closed)
+        if(displayAnnouncement.classList.contains("annoucementClose")){
+            displayAnnouncement.classList.remove("annoucementClose");
+        }
+        // We check that the police are at 1 
+        textDisplayAnnouncement.style.fontSize = '1rem';
+        
+        // We give textDisplayAnnouncement the value sent to displayNewPicks
+        textDisplayAnnouncement.innerText = typeBonus;
+        
+        // After 4 seconds, if the window is open, it will disappear
+        setTimeout(function(){ 
+            if(!displayAnnouncement.classList.contains("annoucementClose")){
+                displayAnnouncement.classList.add("annoucementClose");
+            }
+        }, 4000);
+    },
 
 }//\Arena.prototype
