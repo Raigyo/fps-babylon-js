@@ -89,40 +89,6 @@ Player = function(game, canvas) {
         }
     }, false);//\mousemove
 
-    //Event listener: jump with spacebar
-    // Player can jump or not
-    _this.camera.canJump = true;
-
-    // Jump height
-    _this.jumpHeight = 10;
-
-    // Character height
-    _this.originHeight = _this.camera.playerBox.position.clone();
-    window.addEventListener("keypress", function(evt) {
-        if(evt.keyCode === 32){
-            
-        }
-    }, false);
-    window.addEventListener("keypress", function(evt) {
-        // Le keyCode 32 correspond à la bare espace
-        if(evt.keyCode === 32){
-            console.log('Jumped!');
-            if(_this.camera.canJump===true){
-                // We define the jump height at the player's current position
-                // plus the jumpHeight variable
-                _this.camera.jumpNeed = _this.camera.playerBox.position.y + _this.jumpHeight;
-                _this.camera.canJump=false;
-                // To see jump of other players
-                var data={
-                    jumpNeed : _this.camera.jumpNeed
-                };
-                _this.sendNewData(data);
-            }
-        }
-    }, false);
-
-
-  
     // We get scene canvas
     var canvas = this.game.scene.getEngine().getRenderingCanvas();
   
@@ -134,7 +100,7 @@ Player = function(game, canvas) {
             console.log('fire');
         }
     }, false);//\mousedown
-  
+
     // Check if we are on scene then affect the click release
     canvas.addEventListener("pointerup", function(evt) {
         if (_this.controlEnabled && _this.weaponShoot) {
@@ -170,8 +136,36 @@ Player = function(game, canvas) {
     this.controlEnabled = false;
     // Event to check click on scene
     this._initPointerLock();
+    // Life and armor display
+    this.textHealth.innerText = this.camera.health;
+    this.textArmor.innerText = this.camera.armor;     
+    // Player can jump or not
+    _this.camera.canJump = true;
+    // Jump height
+    _this.jumpHeight = 10;
+    // Character height
+    _this.originHeight = _this.camera.playerBox.position.clone();
+    
+    //Event listener: jump with spacebar
+    window.addEventListener("keypress", function(evt) {
+        // KeyCode 32 corresponds to bare space
+        if(evt.keyCode === 32){
+            console.log('Jumped!');
+            if(_this.camera.canJump===true){
+                // We define the jump height at the player's current position
+                // plus the jumpHeight variable
+                _this.camera.jumpNeed = _this.camera.playerBox.position.y + _this.jumpHeight;
+                _this.camera.canJump=false;
+                // To see jump of other players
+                var data={
+                    jumpNeed : _this.camera.jumpNeed
+                };
+                _this.sendNewData(data);
+            }
+        }
+    }, false);//\keypress
 
-  };//\Player = function(game, canvas)
+};//\Player = function(game, canvas)
 
 //Prototype
 Player.prototype = {
@@ -211,10 +205,7 @@ Player.prototype = {
         // We create weapons
         this.camera.weapons = new Weapons(this);
         // Axis for movement X and Z (Up, Down, Left, Right)
-        this.camera.axisMovement = [false,false,false,false];
-        // Life and armor display
-        this.textHealth.innerText = this.camera.health;
-        this.textArmor.innerText = this.camera.armor;   
+        this.camera.axisMovement = [false,false,false,false];  
         // Cam reinit after respawn
         //this.camera.setTarget(BABYLON.Vector3.Zero());
         this.camera.canJump = true;
