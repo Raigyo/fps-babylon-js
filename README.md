@@ -1,14 +1,38 @@
 # WebGL & Babylon.JS 4 - Videogame: First Personnal Shooter
 
-*February 2020*
+*April 2020*
 
-> 🔨 Videogame using WebGL and Babylon.js 4. Babylon.js is a real time 3D engine using a JavaScript library for displaying 3D graphics in a web browser via HTML5. You could find the OpenClassRooms lesson followed [here](https://openclassrooms.com/fr/courses/3979376-creez-votre-propre-fps-en-webgl).
+> 🔨 Multiplayer videogame using WebGL with **Babylon.js v4**. Babylon.js is a real time 3D engine using a **JavaScript library** for displaying 3D graphics in a web browser via **HTML5**. Multiplayer is managed with **WebSockets (SocketIO)**. You could find the OpenClassRooms lesson followed [here](https://openclassrooms.com/fr/courses/3979376-creez-votre-propre-fps-en-webgl). Demo on [Heroku](https://babylon-fps-online.herokuapp.com/).
 
 ![Babylon logo](readme-img/intro-logo.png)
 
-`node server.js`
+## About
 
---
+
+
+## How to use
+
+**Warning**: WebGL / material acceleration has to be enabled in your browser. The use of Babylon / WebGL needs a strong GPU (quite decent NVidia or AMD Graphic card) to work fluidly. It won't work without it, even with a powerfull GPU. 
+
+How to enable WebGL in your browser?
+
+- [Chrome](https://www.quora.com/How-do-I-enable-WebGL-2-0-in-Chrome)
+- [Firefox](https://www.interplaylearning.com/help/how-to-enable-webgl-in-firefox)
+- [Explorer 11 / Edge](https://support.microsoft.com/en-us/help/2528233/how-to-enable-or-disable-software-rendering-in-internet-explorer)
+- [Safari](https://www.wikihow.com/Enable-Webgl#Using-Safari)
+
+
+### Local
+
+- Clone
+- Run: `node server.js`
+- Open the app using [http://localhost:8000/](http://localhost:8000/)
+
+### Online
+
+See the demo on [Heroku](https://babylon-fps-online.herokuapp.com/).
+
+Of course you will have to find one or several partners to play the game. Each player has to open the URL to reach the game room.
 
 ## Ressources
 
