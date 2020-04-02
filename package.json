@@ -1,9 +1,10 @@
 {
-  "name": "20200223-open",
+  "name": "babylon-fps-online",
   "version": "1.0.0",
   "description": "",
-  "main": "node server.js",
+  "main": "index.html",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
