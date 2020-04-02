@@ -19,3 +19,4 @@
 - [Constructeur Object, prototype et héritage en JavaScript (fr)](https://www.pierre-giraud.com/javascript-apprendre-coder-cours/constructeur-object-prototype-heritage/)
 - [Chrome mousedown and mouseup events no longer working, other browsers are fine](https://stackoverflow.com/questions/41181372/chrome-mousedown-and-mouseup-events-no-longer-working-other-browsers-are-fine/41238807#41238807)
 - [Deploy Simple Node JS App on Heroku in Minutes](https://www.positronx.io/deploy-simple-node-js-app-on-heroku-in-minutes/)
+- [Causes of Heroku H10-App Crashed Error And How To Solve Them](https://dev.to/lawrenceagles/causes-of-heroku-h10-app-crashed-error-and-how-to-solve-them-3jnl)

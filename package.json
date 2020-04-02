@@ -2,6 +2,9 @@
   "name": "babylon-fps-online",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "12.16.1"
+    },
   "main": "index.html",
   "scripts": {
     "start": "node server.js",
