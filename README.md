@@ -12,7 +12,7 @@
 
 ## How to use
 
-**Warning**: WebGL / material acceleration has to be enabled in your browser. The use of Babylon / WebGL needs a strong GPU (quite decent NVidia or AMD Graphic card) to work fluidly. It won't work without it, even with a powerfull GPU. 
+**Warning**: WebGL / material acceleration has to be enabled in your browser. The use of Babylon / WebGL needs a strong GPU (quite decent NVidia or AMD Graphic card) to work fluidly. It won't work without it, even with a powerfull CPU. 
 
 How to enable WebGL in your browser?
 
