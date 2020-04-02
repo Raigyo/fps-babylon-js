@@ -9,7 +9,7 @@ var io = require('socket.io').listen(server);
 
 var os = require('os');
 var ifaces = os.networkInterfaces();
-
+let port = process.env.PORT || 8000; // connexion heroku
 // ================================================
 
 
@@ -291,11 +291,15 @@ setInterval(function(){
 
 // ================================================
 // START LISTENING ON THE PORT
-server.listen(8080, function () {
-    var host = server.address().address;
-    var port = server.address().port;
+// server.listen(8080, function () {
+//     var host = server.address().address;
+//     var port = server.address().port;
 
-    //console.log('JustSquare listening at http://%s:%s', host, port);
-    console.log(`Server is up on port ${port}: http://localhost:${port}/`);
-});
+//     //console.log('JustSquare listening at http://%s:%s', host, port);
+//     console.log(`Server is up on port ${port}: http://localhost:${port}/`);
+// });
 // ================================================
+
+http.listen(port, function(){
+    console.log(`listening on ${ port }`);
+  });
