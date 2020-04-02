@@ -1,17 +1,25 @@
     // ================================================
 // FRAMEWORK DECLARATION
-var express = require('express')
-  , http = require('http');
+// var express = require('express')
+//   , http = require('http');
 
-var app = express();
-var server = http.createServer(app);
-var io = require('socket.io').listen(server);
+// var app = express();
+// var server = http.createServer(app);
+// var io = require('socket.io').listen(server);
 
-var os = require('os');
-var ifaces = os.networkInterfaces();
-let port = process.env.PORT || 8000; // connexion heroku
+// var os = require('os');
+// var ifaces = os.networkInterfaces();
+
 // ================================================
 
+let express = require('express');
+let app = express();
+let http = require('http').Server(app);
+let io = require('socket.io')(http);
+let path = require ('path');
+let os = require('os');
+let ifaces = os.networkInterfaces();
+let port = process.env.PORT || 8000; // connexion heroku
 
 // ================================================
 // SHOW IP ADDRESS IN CONSOLE
@@ -301,5 +309,6 @@ setInterval(function(){
 // ================================================
 
 http.listen(port, function(){
-    console.log(`listening on ${ port }`);
-  });
+    //console.log(`listening on ${ port }`);
+    console.log(`Server is up on port ${port}: http://localhost:${port}/`);
+});
