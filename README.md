@@ -1,4 +1,4 @@
-# WebGL & Babylon.JS 4 - Videogame: First Personnal Shooter
+# WebGL: Babylon.JS & SocketIO- Videogame: Online Multiplayer First Personnal Shooter
 
 *April 2020*
 
@@ -6,8 +6,23 @@
 
 ![Babylon logo](readme-img/intro-logo.png)
 
+![Game capture](readme-img/capture1.jpg)
+
 ## About
 
+Several components are used in this game.
+
+**Arena.js**:
+
+**Game.js**:
+
+**Ghostplayer.js**:
+
+**NetworkManager.js**:
+
+**Player.js**:
+
+**Weapon.js**:
 
 
 ## How to use
