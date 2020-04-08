@@ -40,6 +40,7 @@ How to enable WebGL in your browser?
 ### Local
 
 - Clone
+- Update node_modules: `npm install`
 - Run: `node server.js`
 - Open the app using [http://localhost:8000/](http://localhost:8000/)
 
